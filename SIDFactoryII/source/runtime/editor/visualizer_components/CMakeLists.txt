@@ -1,0 +1,8 @@
+SF2_ADD_FILES( ${CMAKE_CURRENT_SOURCE_DIR}
+	visualizer_component_base.cpp
+	visualizer_component_base.h
+	visualizer_component_pulse_filter_state.cpp
+	visualizer_component_pulse_filter_state.h
+	vizualizer_component_emulation_state.cpp
+	vizualizer_component_emulation_state.h
+)
