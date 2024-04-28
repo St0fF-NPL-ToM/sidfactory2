@@ -10,9 +10,9 @@ SF2_ADD_FILES( ${CMAKE_CURRENT_SOURCE_DIR}
 	ghc/fs_std.h
 	ghc/fs_std_fwd.h
 	ghc/fs_std_impl.h
-	miniz/miniz.c
+											miniz/miniz.c
 	picopng/picopng.h						picopng/picopng.cpp
-	residfp/version.cc
+											residfp/version.cc
 	residfp/array.h
 	residfp/Dac.h							residfp/Dac.cpp
 	residfp/EnvelopeGenerator.h				residfp/EnvelopeGenerator.cpp

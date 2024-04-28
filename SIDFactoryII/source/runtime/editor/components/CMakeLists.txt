@@ -35,4 +35,8 @@ SF2_ADD_FILES( ${CMAKE_CURRENT_SOURCE_DIR}
 	component_track_utils.h
 	component_tracks.cpp
 	component_tracks.h
+	utils/orderlist_utils.cpp
+	utils/text_editing_data_source_table_text.cpp
+	utils/orderlist_utils.h
+	utils/text_editing_data_source_table_text.h
 )
