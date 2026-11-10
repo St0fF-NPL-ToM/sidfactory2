@@ -32,14 +32,23 @@ To build:
 
 This creates a DMG image in the `artifacts` folder.
 
-### Linux (Ubuntu)
+### Linux
+
+#### Ubuntu
 
 Install prerequisites:
 
     apt-get update
     apt-get install g++ make git libsdl2-dev
 
-To build:
+#### Fedora / RedHat-descendants
+
+Install prerequisites:
+
+    sudo dnf update -y
+    sudo dnf install -y g++ make git sdl2-compat-devel
+
+#### Linux building
 
     make dist
 
@@ -49,7 +58,7 @@ Then look in the `artifacts` folder.
 
 ### PicoPNG
 
-PicoPNG files were copied from https://lodev.org/lodepng
+PicoPNG files were copied from <https://lodev.org/lodepng>
 A small change was made to `picopng.h` in relation to [issue 134](https://github.com/Chordian/sidfactory2/issues/134)
 
 ## Releases and nightly builds
