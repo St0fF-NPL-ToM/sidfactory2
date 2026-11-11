@@ -46,7 +46,7 @@ Install prerequisites:
 Install prerequisites:
 
     sudo dnf update -y
-    sudo dnf install -y g++ make git sdl2-compat-devel
+    sudo dnf install -y gcc-c++ make git sdl2-compat-devel
 
 #### Linux building
 
