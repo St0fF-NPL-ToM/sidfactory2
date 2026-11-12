@@ -12,13 +12,10 @@
       "request": "launch",
       "program": "${workspaceFolder}/artifacts/SIDFactoryII",
       "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/artifacts",
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": false,
-      "osx": {
-        "MIMode": "lldb"
-      }
+      "externalConsole": false
     }
   ]
 }

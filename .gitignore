@@ -6,7 +6,7 @@
 .cache
 .vscode
 *.code-workspace
-/builds
+/build**
 /drivers
 /debug
 /release

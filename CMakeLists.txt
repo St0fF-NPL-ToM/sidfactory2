@@ -1,0 +1,52 @@
+#[[
+    CMakeLists Project file for SIDFactoryII
+    ----------------------------------------
+    This is a try to get one buildsystem working on all 3 major OS.
+]]
+cmake_minimum_required( VERSION 4.2 )
+
+# include better.cmake
+file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake ${CMAKE_BINARY_DIR}/better.cmake )
+include( ${CMAKE_BINARY_DIR}/better.cmake )
+
+string( TOUPPER "${CMAKE_HOST_SYSTEM_NAME}" PLATFORM )
+Msg( START "Configuring SIDFactoryII on '${PLATFORM}'" )
+set( CACHE{CMAKE_INSTALL_PREFIX} VALUE "${CMAKE_CURRENT_SOURCE_DIR}/artifacts" )
+
+# query build ID, make a version number out of it.
+init_Git()
+cmd( git show --no-patch --format=%cs OUT_VAR _bd )
+cmd( git rev-parse --short HEAD OUT_VAR _id )
+calc( _bi "0x${_id}" )                  # And only decimal numbers.
+string( REPLACE "-" "." _bi "${_bd}.${_bi}" )  # Version numbering does not allow dashes
+
+# declare project
+project( SIDFactoryII VERSION ${_bi} LANGUAGES C CXX )
+set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evaluates true.
+Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
+
+# import libraries
+find_package( SDL2 REQUIRED )   # same on all OS'es
+set( SF2_LIBS SDL2::SDL2 )
+
+if ( LINUX )
+    cmake_pkg_config( IMPORT jack )
+    list( APPEND SF2_LIBS PkgConfig::jack )
+    set( TPROP "" )
+elseif( APPLE )
+    Msg( FATAL "APPLE build chain has not yet been ported to CMake. Sorry!" )
+    add_compile_definitions( __MACOS_CORE__ )
+    set( TPROP MACOSX_BUNDLE )
+elseif( WIN32 )
+    Msg( FATAL "WINDOWS build chain has not yet been ported to CMake. Sorry!" )
+    set( TPROP WIN32 )
+else()
+    Msg( FATAL "Seems like your operating system was never tried. Sorry!" )
+endif()
+add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=\"${_bd}.${_id}\" )
+
+add_executable( SIDFactoryII ${TPROP} )
+add_subdirectory( SIDFactoryII )
+target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
+Msg( DONE "Puh!" )
