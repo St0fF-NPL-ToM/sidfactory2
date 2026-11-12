@@ -6,8 +6,16 @@
 cmake_minimum_required( VERSION 4.2 )
 
 # include better.cmake
-file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake ${CMAKE_BINARY_DIR}/better.cmake )
-include( ${CMAKE_BINARY_DIR}/better.cmake )
+if ( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake )
+    file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake STATUS BCM SHOW_PROGRESS )
+    list( POP_FRONT BCM BCM_EC )
+    if ( BCM_EC ) # error-code non-zero
+        message( FATAL_ERROR "Better CMake could not be downloaded:\n\tCode: ${BCM_EC}\t${BCM}" )
+    else()
+        file( RENAME ${CMAKE_CURRENT_BINARY_DIR}/better.cmake ${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake )
+    endif()
+endif()
+include( "${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake" )
 
 string( TOUPPER "${CMAKE_HOST_SYSTEM_NAME}" PLATFORM )
 Msg( START "Configuring SIDFactoryII on '${PLATFORM}'" )
@@ -44,9 +52,9 @@ elseif( WIN32 )
 else()
     Msg( FATAL "Seems like your operating system was never tried. Sorry!" )
 endif()
-add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=\"${_bd}.${_id}\" )
+set( BN "\"${_bd}.${_id}\"" )
+add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
 
-add_executable( SIDFactoryII ${TPROP} )
+# Create the executable inside the project base folder
 add_subdirectory( SIDFactoryII )
-target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
 Msg( DONE "Puh!" )

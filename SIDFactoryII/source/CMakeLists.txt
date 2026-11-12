@@ -7,7 +7,8 @@
 cmake_minimum_required( VERSION 4.2 )
 
 add_subdirectory( libraries/miniz )
-set( SF2_LIBS ${SF2_LIBS} SF2::MZ PARENT_SCOPE )
+add_subdirectory( libraries/residfp )
+set( SF2_LIBS ${SF2_LIBS} miniz reSIDfp PARENT_SCOPE )
 
 target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     foundation
@@ -20,8 +21,8 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     libraries/ghc
     # libraries/miniz
     libraries/picopng
-    libraries/residfp
-    libraries/residfp/resample
+    # libraries/residfp
+    # libraries/residfp/resample
     libraries/rtmidi
     resources
     utils/config
@@ -59,29 +60,29 @@ set( HEADERS
     libraries/ghc/fs_std.h
     # libraries/miniz/timer.h
     libraries/picopng/picopng.h
-    libraries/residfp/resample/Resampler.h
-    libraries/residfp/resample/SincResampler.h
-    libraries/residfp/resample/TwoPassSincResampler.h
-    libraries/residfp/resample/ZeroOrderResampler.h
-    libraries/residfp/array.h
-    libraries/residfp/Dac.h
-    libraries/residfp/EnvelopeGenerator.h
-    libraries/residfp/ExternalFilter.h
-    libraries/residfp/Filter.h
-    libraries/residfp/Filter6581.h
-    libraries/residfp/Filter8580.h
-    libraries/residfp/FilterModelConfig.h
-    libraries/residfp/FilterModelConfig8580.h
-    libraries/residfp/Integrator.h
-    libraries/residfp/Integrator8580.h
-    libraries/residfp/OpAmp.h
-    libraries/residfp/Potentiometer.h
-    libraries/residfp/SID.h
-    libraries/residfp/siddefs-fp.h
-    libraries/residfp/Spline.h
-    libraries/residfp/Voice.h
-    libraries/residfp/WaveformCalculator.h
-    libraries/residfp/WaveformGenerator.h
+    # libraries/residfp/resample/Resampler.h
+    # libraries/residfp/resample/SincResampler.h
+    # libraries/residfp/resample/TwoPassSincResampler.h
+    # libraries/residfp/resample/ZeroOrderResampler.h
+    # libraries/residfp/array.h
+    # libraries/residfp/Dac.h
+    # libraries/residfp/EnvelopeGenerator.h
+    # libraries/residfp/ExternalFilter.h
+    # libraries/residfp/Filter.h
+    # libraries/residfp/Filter6581.h
+    # libraries/residfp/Filter8580.h
+    # libraries/residfp/FilterModelConfig.h
+    # libraries/residfp/FilterModelConfig8580.h
+    # libraries/residfp/Integrator.h
+    # libraries/residfp/Integrator8580.h
+    # libraries/residfp/OpAmp.h
+    # libraries/residfp/Potentiometer.h
+    # libraries/residfp/SID.h
+    # libraries/residfp/siddefs-fp.h
+    # libraries/residfp/Spline.h
+    # libraries/residfp/Voice.h
+    # libraries/residfp/WaveformCalculator.h
+    # libraries/residfp/WaveformGenerator.h
     libraries/rtmidi/RtMidi.h
 
     resources/data_char.h
@@ -126,23 +127,23 @@ set( SOURCES
     # libraries/miniz/timer.cpp
     # libraries/miniz/tinfl.c
     libraries/picopng/picopng.cpp
-    libraries/residfp/resample/SincResampler.cpp
-    libraries/residfp/Dac.cpp
-    libraries/residfp/EnvelopeGenerator.cpp
-    libraries/residfp/ExternalFilter.cpp
-    libraries/residfp/Filter.cpp
-    libraries/residfp/Filter6581.cpp
-    libraries/residfp/Filter8580.cpp
-    libraries/residfp/FilterModelConfig.cpp
-    libraries/residfp/FilterModelConfig8580.cpp
-    libraries/residfp/Integrator.cpp
-    libraries/residfp/Integrator8580.cpp
-    libraries/residfp/OpAmp.cpp
-    libraries/residfp/SID.cpp
-    libraries/residfp/Spline.cpp
-    libraries/residfp/version.cc
-    libraries/residfp/WaveformCalculator.cpp
-    libraries/residfp/WaveformGenerator.cpp
+    # libraries/residfp/resample/SincResampler.cpp
+    # libraries/residfp/Dac.cpp
+    # libraries/residfp/EnvelopeGenerator.cpp
+    # libraries/residfp/ExternalFilter.cpp
+    # libraries/residfp/Filter.cpp
+    # libraries/residfp/Filter6581.cpp
+    # libraries/residfp/Filter8580.cpp
+    # libraries/residfp/FilterModelConfig.cpp
+    # libraries/residfp/FilterModelConfig8580.cpp
+    # libraries/residfp/Integrator.cpp
+    # libraries/residfp/Integrator8580.cpp
+    # libraries/residfp/OpAmp.cpp
+    # libraries/residfp/SID.cpp
+    # libraries/residfp/Spline.cpp
+    # libraries/residfp/version.cc
+    # libraries/residfp/WaveformCalculator.cpp
+    # libraries/residfp/WaveformGenerator.cpp
     libraries/rtmidi/RtMidi.cpp
 
     utils/config/configcolors.cpp
@@ -160,10 +161,5 @@ set( SOURCES
     utils/usercolors.cpp
     utils/utilities.cpp
 )
-set( OTHERS
-    libraries/residfp/AUTHORS
-    libraries/residfp/COPYING
-    libraries/residfp/README
-)
-target_sources( SIDFactoryII PUBLIC ${HEADERS} ${SOURCES} ${OTHERS} )
+target_sources( SIDFactoryII PUBLIC ${HEADERS} ${SOURCES} )
 add_subdirectory( runtime )

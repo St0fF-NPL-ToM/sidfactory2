@@ -14,4 +14,3 @@ PROJECT( miniz )
 
 add_library( miniz STATIC miniz.c )
 target_include_directories( miniz PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
-add_library( SF2::MZ ALIAS miniz ) # make it useable
