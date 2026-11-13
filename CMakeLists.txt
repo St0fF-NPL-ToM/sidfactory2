@@ -7,7 +7,7 @@ cmake_minimum_required( VERSION 4.2 )
 
 # include better.cmake
 if ( NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/better.cmake )
-    file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake better.cmake STATUS BCM SHOW_PROGRESS )
+    file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake better.cmake STATUS BCM )
     list( POP_FRONT BCM BCM_EC )
     if ( BCM_EC ) # error-code non-zero
         message( FATAL_ERROR "Better CMake could not be downloaded:\n\tCode: ${BCM_EC}\t${BCM}" )
@@ -30,7 +30,7 @@ string( REPLACE "-" "." _bi "${_bd}.${_bi}" )  # integers and colons.  No dashes
 
 # declare project
 project( sidfactory2 VERSION ${_bi} LANGUAGES C CXX )
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 20 )                  # some libraries by now require more
 set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evaluates true.
 Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
 
@@ -53,12 +53,12 @@ if ( LINUX )
     cmake_pkg_config( IMPORT jack )
     set( SF2_LIBS PkgConfig::SDL2 PkgConfig::SDL2Main PkgConfig::jack )
     # libexec needs a subdirectory on linux (as we also install folders)
-    set( CMAKE_INSTALL_LIBEXECDIR /libexec/sidfactory2 )
 	include( GNUInstallDirs )
-	add_compile_definitions( __UNIX_JACK__ ) # RtMidi needs that
+    string( APPEND CMAKE_INSTALL_LIBEXECDIR /sidfactory2 )
+    set( CACHE{SF2_EXEC_DIR} FORCE VALUE "${CMAKE_INSTALL_LIBEXECDIR}" )
+    set( CACHE{SF2_DOC_DIR} FORCE VALUE "${CMAKE_INSTALL_DOCDIR}" )
 elseif( APPLE )
     set( TPROP MACOSX_BUNDLE )
-    add_compile_definitions( __MACOS_CORE__ )
     Msg( FATAL "APPLE build chain has not yet been ported to CMake. Sorry!" )
 elseif( WIN32 )
     set( TPROP WIN32 )
@@ -66,11 +66,8 @@ elseif( WIN32 )
     FetchContent_Declare( SDL2 GIT_REPOSITORY https://github.com/libsdl-org/SDL GIT_TAG SDL2 GIT_SHALLOW True )
     FetchContent_MakeAvailable( SDL2 )
     set( SF2_LIBS SDL2::SDL2 SDL2::SDL2main )
-    set( CMAKE_INSTALL_BINDIR "." )  # on Windows: everything goes into $INSTALLROOT
-    set( CMAKE_INSTALL_LIBEXECDIR "." )
-    set( CMAKE_INSTALL_DATAROOTDIR "." )
-    set( CMAKE_INSTALL_DOCDIR "." )
-	add_compile_definitions( __WINDOWS_UWP__ ) # RtMidi needs that
+    set( CACHE{SF2_EXEC_DIR} FORCE VALUE "." )
+    set( CACHE{SF2_DOC_DIR} FORCE VALUE "." )
 else()
     Msg( FATAL "Seems like your operating system is not yet supported. Sorry!\nYou may as well contribute by extending this CMake-buildchain." )
 endif()
@@ -83,8 +80,8 @@ add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
 add_subdirectory( SIDFactoryII )
 
 # Installation tasks from here:
-install( DIRECTORY dist/documentation    TYPE DOC )
-install( FILES README.md                 TYPE DOC )
+install( DIRECTORY dist/documentation    DESTINATION "${SF2_DOC_DIR}" )
+install( FILES README.md                 DESTINATION "${SF2_DOC_DIR}" )
 if ( LINUX )
     # Linux needs the icon and desktop entries in special XDG-DIRS
     install( FILES macos/icon.svg        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${PROJECT_NAME}.svg )
