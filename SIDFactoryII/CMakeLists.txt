@@ -13,27 +13,26 @@ Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
 target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
 
 # Artifacts can be copied with a special target on one hand, but CMake does indeed know that thing
-# about installation on the other, making the "dist"-target obsolete.
-# - MSVC offers options to debug the installed executable, installed to a local buildroot
-install( DIRECTORY color_schemes            TYPE LIBEXEC )
-install( DIRECTORY drivers                  TYPE LIBEXEC )
-install( DIRECTORY music                    TYPE LIBEXEC )
-install( DIRECTORY overlay                  TYPE LIBEXEC )
-install( FILES     config.ini               DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/config/ )
-# Targets are to be installed differently (unless libexec and bindir are the same)
-install( TARGETS SIDFactoryII EXPORT SIDFactoryII
-    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-)
+# about installation on the other, making the "dist"-target obsolete.  We'll have to simply "bend"
+# the GNUInstallDirs. (Which is done in the toplevel CML)
+install( DIRECTORY color_schemes            DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}" )
+install( DIRECTORY drivers                  DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}" )
+install( DIRECTORY music                    DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}" )
+install( DIRECTORY overlay                  DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}" )
+install( FILES     config.ini               DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}/config/" )
+install( FILES     COPYING                  DESTINATION "${CMAKE_INSTALL_DOCDIR}/" )
+install( TARGETS   SIDFactoryII             DESTINATION "${CMAKE_INSTALL_BINDIR}" )
 
 if( LINUX )
     # Let's try a CMake-Link?
-    install( FILES COPYING                   TYPE DOC )
     install( CODE "
-        file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR} )
-        file( CREATE_LINK
+        # move 'badly named' executable into libexec
+        file( RENAME ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/SIDFactoryII
+                     ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/SIDFactoryII )
+        # symlink from bin-dir to libexec-dir
+        file( CREATE_LINK SYMBOLIC RESULT _r
             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/SIDFactoryII
-            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2 SYMBOLIC RESULT _r )
+            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2 )
         if ( _r )
             message( WARNING \"Link-Update failed: ${_r}\" )
         else()
@@ -41,4 +40,5 @@ if( LINUX )
         endif()
         unset( _r )
     " )
+elseif( WIN32 )
 endif()

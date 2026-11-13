@@ -8,7 +8,8 @@ cmake_minimum_required( VERSION 4.2 )
 
 add_subdirectory( libraries/miniz )
 add_subdirectory( libraries/residfp )
-set( SF2_LIBS ${SF2_LIBS} miniz reSIDfp PARENT_SCOPE )
+add_subdirectory( libraries/rtmidi )
+set( SF2_LIBS ${SF2_LIBS} miniz reSIDfp RtMidi PARENT_SCOPE )
 
 target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     foundation
@@ -23,7 +24,7 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     libraries/picopng
     # libraries/residfp
     # libraries/residfp/resample
-    libraries/rtmidi
+    # libraries/rtmidi
     resources
     utils/config
     utils
@@ -83,7 +84,7 @@ set( HEADERS
     # libraries/residfp/Voice.h
     # libraries/residfp/WaveformCalculator.h
     # libraries/residfp/WaveformGenerator.h
-    libraries/rtmidi/RtMidi.h
+    # libraries/rtmidi/RtMidi.h
 
     resources/data_char.h
     resources/data_logo.h
@@ -144,7 +145,7 @@ set( SOURCES
     # libraries/residfp/version.cc
     # libraries/residfp/WaveformCalculator.cpp
     # libraries/residfp/WaveformGenerator.cpp
-    libraries/rtmidi/RtMidi.cpp
+    # libraries/rtmidi/RtMidi.cpp
 
     utils/config/configcolors.cpp
     utils/config/configtypes.cpp
