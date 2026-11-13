@@ -19,7 +19,7 @@ include( "${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake" )
 
 string( TOUPPER "${CMAKE_HOST_SYSTEM_NAME}" PLATFORM )
 Msg( START "Configuring SIDFactoryII on '${PLATFORM}'" )
-set( CACHE{CMAKE_INSTALL_PREFIX} VALUE "${CMAKE_CURRENT_SOURCE_DIR}/artifacts" )
+set( CACHE{CMAKE_INSTALL_PREFIX} FORCE VALUE "${CMAKE_CURRENT_SOURCE_DIR}/artifacts" )
 
 # query build ID, make a version number out of it.
 init_Git()
@@ -55,6 +55,24 @@ endif()
 set( BN "\"${_bd}.${_id}\"" )
 add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
 
+# prepare for install commands
+include( GNUInstallDirs )
+
 # Create the executable inside the project base folder
 add_subdirectory( SIDFactoryII )
+
+# Installation tasks from here:
+install( DIRECTORY dist/documentation    TYPE DOC )
+install( FILES README.md                 TYPE DOC )
+if ( LINUX )
+    # Linux needs the icon and desktop entries in special XDG-DIRS
+    install( FILES macos/icon.svg        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${PROJECT_NAME}.svg )
+    install( FILES dist/com.github.sidfactory2.desktop
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/ )
+    install( FILES dist/com.github.sidfactory2.appstream.xml
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo/com.github.sidfactory2.metainfo.xml )
+elseif( APPLE )
+elseif( WIN32 )
+endif()
+
 Msg( DONE "Puh!" )

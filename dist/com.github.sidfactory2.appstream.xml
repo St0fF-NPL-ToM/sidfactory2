@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="Application">
+  <id>org.github.sidfactory2</id>
+  <name>SIDFactoryII</name>
+  <summary>
+    A Commodore C64 SID Music Cross-Editor, made by the C64 Demoscene
+  </summary>
+  <developer id="C64-Demoscene">
+    <name>
+      Commodore 64 Demo Scene: JCH, Laxity, tubesockor, Youth
+    </name>
+  </developer>
+  <description>
+    <p>
+      SID Factory II is a cross-platform editor for composing music that will work on a Commodore 64. It uses the reSID emulator and is currently in open BETA.
+    </p>
+    <p>
+      Main programming by Thomas Egeskov Petersen, with assistance by Jens-Christian Huus, Michel de Bree and Thomas Jansson.
+    </p>
+    <p> Notable features: <ul>
+        <li>Uses the renowned reSID emulator</li>
+        <li>Tracker-like interface, using JCH's contiguous sequence stacking system and Protracker note input layout.</li>
+        <li>Choice of various music drivers made by pioneer musicians Laxity and JCH , optimized for use in demos and games on the Commodore 64.</li>
+        <li>A hotkey opens a surrounding overlay with help for both editor and driver.</li>
+        <li>Imports Goattracker, CheeseCutter and MOD files.</li>
+        <li>Supports both SID models 6581 and 8580 for PAL and NTSC.</li>
+        <li>Unlimited undo</li>
+        <li>Multiple songs</li>
+        <li>Copy / paste and modify selected area</li>
+        <li>Built-in packer and relocator to position the music anywhere in the Commodore 64 memory. Relocate used zero page addresses.</li>
+        <li>Includes demo tunes to learn from.</li>
+        <li>Cross platform: Windows, macOS (Intel and ARM) and Linux versions.</li>
+        <li>Configurable settings, shortcuts and keyboard layout</li>
+        <li>ASID support, for playback on real SID hardware interfaces/instruments.</li>
+        <li>Open source</li>
+      </ul>
+    </p>
+  </description>
+  <metadata_license>GPLv2</metadata_license>
+  <project_license>GPLv2</project_license>
+  <url type="homepage">https://github.com/Chordian/sidfactory2</url>
+  <url type="bugtracker">https://github.com/Chordian/sidfactory2/issues</url>
+  <url type="donation">https://github.com/Chordian/sidfactory2</url>
+  <url type="faq">https://github.com/Chordian/sidfactory2</url>
+  <url type="help">https://github.com/Chordian/sidfactory2</url>
+  <project_group>none</project_group>
+  <screenshots>
+    <screenshot type="default">
+      <caption>XXX: Describe the default screenshot</caption>
+      <image height="630" width="1120">https://github.com/Chordian/sidfactory2/blob/master/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <update_contact>packager: Stefan Kaps (st0ff.npl@gmail.com)</update_contact>
+</component>
