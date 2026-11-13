@@ -12,7 +12,6 @@ add_subdirectory( source )
 Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
 target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
 
-set( CMAKE_INSTALL_LIBEXECDIR ${CMAKE_INSTALL_LIBEXECDIR}/sidfactory2 PARENT_SCOPE )
 # Artifacts can be copied with a special target on one hand, but CMake does indeed know that thing
 # about installation on the other, making the "dist"-target obsolete.
 # - MSVC offers options to debug the installed executable, installed to a local buildroot
@@ -33,7 +32,7 @@ if( LINUX )
     install( CODE "
         file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR} )
         file( CREATE_LINK
-            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/${PROJECT_NAME}
+            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/SIDFactoryII
             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2 SYMBOLIC RESULT _r )
         if ( _r )
             message( WARNING \"Link-Update failed: ${_r}\" )
