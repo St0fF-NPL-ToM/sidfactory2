@@ -6,17 +6,14 @@
 cmake_minimum_required( VERSION 4.2 )
 
 # include better.cmake
-if ( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake )
-    # weird shit: I had extreme download issues when designing this CMake system. Maybe we don't even need BCM …
-    file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake STATUS BCM SHOW_PROGRESS )
+if ( NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/better.cmake )
+    file( DOWNLOAD https://gitlab.com/copr-projekte/better-cmake/-/releases/0.2.2/downloads/better.cmake better.cmake STATUS BCM SHOW_PROGRESS )
     list( POP_FRONT BCM BCM_EC )
     if ( BCM_EC ) # error-code non-zero
         message( FATAL_ERROR "Better CMake could not be downloaded:\n\tCode: ${BCM_EC}\t${BCM}" )
-    else()
-        file( RENAME ${CMAKE_CURRENT_BINARY_DIR}/better.cmake ${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake )
     endif()
 endif()
-include( "${CMAKE_CURRENT_SOURCE_DIR}/tools/better.cmake" )
+include( "${CMAKE_CURRENT_BINARY_DIR}/better.cmake" )
 
 # Before we start: make a fresh CMake-Cache-installation point to the artifacts folder …
 set( CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/artifacts" )
