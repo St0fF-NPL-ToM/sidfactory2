@@ -1,0 +1,9 @@
+[Desktop Entry]
+X-Desktop-File-Install-Version=0.28
+Type=Application
+Name=SIDFactoryII
+GenericName=sidfactory2
+Comment=A Commodore C64 SID Music Cross-Editor, made by the C64 Demoscene
+Categories=AudioVideo;Audio;X-Recorders;X-Multitrack;X-Jack;X-AudioEditing;
+Icon=SIDFactoryII
+Exec=sidfactory2 %f
