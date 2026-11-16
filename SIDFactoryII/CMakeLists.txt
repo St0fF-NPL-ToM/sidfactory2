@@ -18,23 +18,22 @@ target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
 # the GNUInstallDirs. (Which is done in the toplevel CML)
 install(    DIRECTORY   color_schemes drivers music overlay
             DESTINATION "${SF2_EXEC_DIR}" )
-install(    FILES       config.ini               
+install(    FILES       config.ini
             DESTINATION "${SF2_EXEC_DIR}/config/" )
-install(    FILES       COPYING                  
+install(    FILES       COPYING
             DESTINATION "${SF2_DOC_DIR}" )
-install(    TARGETS     SIDFactoryII 
+install(    TARGETS     SIDFactoryII
             DESTINATION "${SF2_EXEC_DIR}" )
 
 if( LINUX )
     # Let's try a CMake-Link?
     install( CODE "
-        # move 'badly named' executable into libexec
-        file( RENAME ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/SIDFactoryII
-                     ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/SIDFactoryII )
+        file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR} )
         # symlink from bin-dir to libexec-dir
-        file( CREATE_LINK SYMBOLIC RESULT _r
-            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/SIDFactoryII
-            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2 )
+        file( CREATE_LINK
+            ${CMAKE_INSTALL_PREFIX}/${SF2_EXEC_DIR}/SIDFactoryII
+            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2
+            SYMBOLIC RESULT _r )
         if ( _r )
             message( WARNING \"Link-Update failed: ${_r}\" )
         else()

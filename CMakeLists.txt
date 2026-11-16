@@ -30,7 +30,7 @@ string( REPLACE "-" "." _bi "${_bd}.${_bi}" )  # integers and colons.  No dashes
 
 # declare project
 project( sidfactory2 VERSION ${_bi} LANGUAGES C CXX )
-set( CMAKE_CXX_STANDARD 20 )                  # some libraries by now require more
+set( CMAKE_CXX_STANDARD 14 )                  # some libraries by now require more
 set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evaluates true.
 Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
 
@@ -49,9 +49,12 @@ if ( LINUX )
     #   (jack-audio-connection-kit-devel)               |   libjack-dev
     #       ||                                          |
     #   (pulseaudio-jack-audio-connection-kit-devel)    |
-    cmake_pkg_config( IMPORT SDL2 )
     cmake_pkg_config( IMPORT jack )
-    set( SF2_LIBS PkgConfig::SDL2 PkgConfig::SDL2Main PkgConfig::jack )
+    find_package( SDL2 QUIET )
+    if ( NOT SDL2_FOUND )
+        cmake_pkg_config( IMPORT SDL2 )
+    endif()
+    get_directory_property( SF2_LIBS IMPORTED_TARGETS )
     # libexec needs a subdirectory on linux (as we also install folders)
 	include( GNUInstallDirs )
     string( APPEND CMAKE_INSTALL_LIBEXECDIR /sidfactory2 )
