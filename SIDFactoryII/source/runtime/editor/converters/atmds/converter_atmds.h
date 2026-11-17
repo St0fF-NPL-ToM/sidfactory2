@@ -1,5 +1,6 @@
 #pragma once
 
+#include "runtime/editor/components/component_console.h"
 #include "runtime/editor/converters/converterbase.h"
 
 namespace Editor
@@ -17,5 +18,10 @@ namespace Editor
 
 	private:
 		void Setup() override;
+		std::shared_ptr<Utility::C64File> tryUnpack(const void* inData, unsigned int inDataSize) const;
+		bool maybeEditorLayout(std::shared_ptr<Utility::C64File>) const;
+
+		std::shared_ptr<Utility::C64File> m_file;
+		int m_song { -1 };
 	};
 }
