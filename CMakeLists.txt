@@ -52,10 +52,11 @@ if ( LINUX )
     cmake_pkg_config( IMPORT jack )
     find_package( SDL2 QUIET )
     if ( NOT SDL2_FOUND )
-        cmake_pkg_config( IMPORT SDL2 )
+        cmake_pkg_config( IMPORT sdl2 )
+        cmake_pkg_config( IMPORT sdl2-compat )  # fallback
     endif()
     get_directory_property( SF2_LIBS IMPORTED_TARGETS )
-    list( FILTER SF2_LIBS EXCLUDE REGEX "Git.*" )
+    list( FILTER SF2_LIBS EXCLUDE REGEX "Git.*" ) # Git was also imported, but not for linking!
     # libexec needs a subdirectory on linux (as we also install folders)
 	include( GNUInstallDirs )
     string( APPEND CMAKE_INSTALL_LIBEXECDIR /sidfactory2 )

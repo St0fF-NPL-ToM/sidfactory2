@@ -1,7 +1,7 @@
 #include "datasource_atmds_track.h"
+#include "foundation/base/assert.h"
 #include "runtime/emulation/cpumemory.h"
 #include <cstring>
-#include "foundation/base/assert.h"
 
 namespace Editor
 {
@@ -70,7 +70,6 @@ namespace Editor
 	bool DataSourceTrackList::CanIncreaseSize() const
 	{
 		return m_Length < static_cast<unsigned int>(MaxEntryCount);
-
 	}
 
 	void DataSourceTrackList::IncreaseSize()
@@ -105,10 +104,9 @@ namespace Editor
 
 	unsigned char DataSourceTrackList::GetLoopIndex() const
 	{
-		if (m_Length > 0)
-			return m_Events[m_Length - 1].m_SequenceIndex;
-
-		return 0;
+		if (m_Length > 0 && m_Events[m_Length - 1].m_Flags == Entry::loops)
+			return m_Events[m_Length - 1].m_EvtExtraData;
+		return m_Length;
 	}
 
 
@@ -157,7 +155,7 @@ namespace Editor
 				end_index = i;
 				end_marker = val;
 
-				if(val == 0xff)
+				if (val == 0xff)
 					loop_index = m_Events[i].m_SequenceIndex;
 
 				break;
@@ -249,7 +247,7 @@ namespace Editor
 				if (count == inIndex + 1)
 				{
 					const unsigned char next_event = m_Data[i + 1];
-					const int return_index = next_event == 0xff ? m_Data[i + 2] : (i + 1);	// If the next event is a loop mark, the next next event is the loop offset into the orderlist data.
+					const int return_index = next_event == 0xff ? m_Data[i + 2] : (i + 1); // If the next event is a loop mark, the next next event is the loop offset into the orderlist data.
 
 					return { true, static_cast<unsigned char>(return_index), sequence, transpose };
 				}
@@ -281,10 +279,7 @@ namespace Editor
 	void DataSourceTrackList::ClearEntries()
 	{
 		for (int i = 0; i < MaxEntryCount; ++i)
-		{
-			m_Events[i].m_Transposition = 0xa0;
-			m_Events[i].m_SequenceIndex = 0;
-		}
+			m_Events[i] = {};
 	}
 
 	void DataSourceTrackList::Unpack()
@@ -294,46 +289,77 @@ namespace Editor
 		unsigned char end_marker = 0;
 		unsigned char loop_index = 0;
 
-		// Find end and possibly loop index
-		for (int i = 0; i < 0x100; ++i)
-		{
-			unsigned char value = m_Data[i];
-
-			if (value == 0xff)
+		// finally some St0fFcode.
+		int i {}, e {};
+		bool inside { true };
+		while (inside)
+		{ // parse "row by row" - ATMDS 3.2 Track Parser
+			// Tracks (comparably OrderLists in SF2) have much more options in ATMDS than in SF2.
+			// Some of these options are considered nonsense by today's standards, but in the 90's
+			// I thought it was a good idea …
+			//	Track-Commands:
+			//		Transpose: 	TRP+ / TRP-			as known from SF2, but optional per Row.
+			//		Repeat:		REP#XX				repeats the row's sector N time (while 0 also
+			//										 means repeat 0 times, e.g. play once!)
+			//		Volume:		VOL#X 				as the name suggest, sets the master SID volume
+			//										prior to playing the requested sector
+			//		Song:		SNG#X 				Switches to Song#X
+			//		Loop:		LOOP#X				Loops to position X inside this track (needs to
+			// 										 set a pointer to the beginning of a row!)
+			//		Stop:		STOP				Stops all order and sequence processing on this
+			//										Channel.
+			//		Speed:		SPD#X 				Set the tick-Speed, e.g. song tempo
+			//		Sector:		xy
+			//
+			auto& row = m_Events[e];
+			if (m_Data[i] == 0xff) // STOP found
 			{
-				end_marker_index = i;
-				end_marker = value;
-				loop_index = m_Data[i + 1];
-
-				++entry_count;
-
-				m_PackedSize = i + 2;
-
-				break;
+				// previous event will be the finisher
+				m_Events[e > 0 ? e - 1 : e].m_Flags = Entry::stops;
+				inside = false;
 			}
-			if (value == 0xfe)
+			if (m_Data[i] == 0xfe) // LOOP found
 			{
-				end_marker_index = i;
-				end_marker = value;
-
-				++entry_count;
-
-				m_PackedSize = i + 1;
-
-				break;
+				// previous event will be the looper, but we'll have to find the e to the i
+				m_Events[e > 0 ? e - 1 : e].m_Flags = Entry::loops;
+				unsigned char lp = m_Data[++i], k = 0;
+				for (int j = 0; k < lp; ++j)
+					if (m_Data[j] < 0x60)
+						++k;
+				m_Events[e > 0 ? e - 1 : e].m_EvtExtraData = k;
+				inside = false;
 			}
-			if (value < 0x80)
-				++entry_count;
+			if (m_Data[i] >= 0xf0) // SNG#X found
+			{
+				// previous event will be the spawner
+				m_Events[e > 0 ? e - 1 : e].m_Flags = Entry::song;
+				m_Events[e > 0 ? e - 1 : e].m_EvtExtraData = m_Data[i] & 3;
+				inside = false;
+			}
+			if (m_Data[i] >= 0xe0) // VOL#X found
+			{
+				row.m_Flags = Entry::volume;
+				row.m_EvtExtraData = m_Data[i++] & 15;
+			}
+			if (m_Data[i] >= 0xc0) // REP#X found
+				row.m_Repetition = m_Data[i++] & 31;
+			if (m_Data[i] >= 0xa0) // TRP-X found
+				row.m_Transposition = -(m_Data[i++] & 31);
+			if (m_Data[i] >= 0x80) // TRP+X found
+				row.m_Transposition = m_Data[i++] & 31;
+			if (m_Data[i] >= 0x60) // SPD+X found
+			{
+				row.m_Flags = Entry::tempo;
+				row.m_EvtExtraData = m_Data[i++] & 31;
+			}
+			if (m_Data[i] < 0x60)
+			{ // Sector ID → last Item of Row!
+				row.m_SequenceIndex = m_Data[i++];
+				++e;
+			}
 		}
-
-		if (end_marker_index == -1 || entry_count >= MaxEntryCount)
-		{
-			m_Length = 0;
-			return;
-		}
-
-		// Set order list length
-		m_Length = entry_count;
+		m_PackedSize = i + 1;
+		m_Length = e + 1;
 
 		// Unpack from data source
 		unsigned char current_transposition = 0;

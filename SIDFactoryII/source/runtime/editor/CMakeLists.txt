@@ -11,6 +11,7 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     components
     components/utils
     converters
+    converters/atmds
     converters/cc
     converters/gt
     converters/jch
@@ -76,6 +77,7 @@ set( HEADERS
     components/component_tracks.h
 
     converters/converterbase.h
+    converters/atmds/converter_atmds.h
     converters/cc/converter_cc.h
     converters/cc/source_ct.h
     converters/gt/converter_gt.h
@@ -212,6 +214,7 @@ set( SOURCES
     components/component_tracks.cpp
 
     converters/converterbase.cpp
+    converters/atmds/converter_atmds.cpp
     converters/cc/converter_cc.cpp
     converters/cc/source_ct.cpp
     converters/gt/converter_gt.cpp

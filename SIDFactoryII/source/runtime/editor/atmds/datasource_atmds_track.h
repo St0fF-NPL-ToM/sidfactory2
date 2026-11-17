@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../datasources/idatasource.h"
 #include "../datasources/datasource_emulation_memory.h"
+#include "../datasources/idatasource.h"
 
 #include <memory>
 
@@ -19,9 +19,19 @@ namespace Editor
 
 		struct Entry
 		{
+			enum
+			{
+				none,
+				loops,
+				stops,
+				song,
+				volume,
+				tempo
+			} m_Flags { none };
 			unsigned char m_Transposition;
 			unsigned char m_Repetition;
 			unsigned char m_SequenceIndex;
+			unsigned char m_EvtExtraData;
 		};
 
 		struct PackResult
