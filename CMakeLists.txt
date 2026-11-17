@@ -55,6 +55,7 @@ if ( LINUX )
         cmake_pkg_config( IMPORT sdl2 )
         cmake_pkg_config( IMPORT sdl2-compat )  # fallback
     endif()
+    cmake_pkg_config( IMPORT libusb-1.0 )
     get_directory_property( SF2_LIBS IMPORTED_TARGETS )
     list( FILTER SF2_LIBS EXCLUDE REGEX "Git.*" ) # Git was also imported, but not for linking!
     # libexec needs a subdirectory on linux (as we also install folders)

@@ -10,6 +10,7 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     emulation
     emulation/asid
     emulation/sid
+    emulation/usbsid
     execution
 )
 set( HEADERS
@@ -18,6 +19,7 @@ set( HEADERS
     emulation/asid/asid.h
     emulation/sid/sidproxy.h
     emulation/sid/sidproxydefines.h
+    emulation/usbsid/usbsidpico.h
     emulation/cpuframecapture.h
     emulation/cpumemory.h
     emulation/cpumos6510.h
@@ -31,6 +33,7 @@ set( SOURCES
 
     emulation/asid/asid.cpp
     emulation/sid/sidproxy.cpp
+    emulation/usbsid/usbsidpico.cpp
     emulation/cpuframecapture.cpp
     emulation/cpumemory.cpp
     emulation/cpumos6510.cpp

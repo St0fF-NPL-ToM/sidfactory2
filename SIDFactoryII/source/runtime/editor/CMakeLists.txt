@@ -131,6 +131,7 @@ set( HEADERS
     dialog/dialog_songs.h
     dialog/dialog_text_input.h
     dialog/dialog_utilities.h
+    dialog/dialog_usbsid_boards.h
 
     driver/driver_architecture_sidfactory2.h
     driver/driver_info.h
@@ -266,6 +267,7 @@ set( SOURCES
     dialog/dialog_songs.cpp
     dialog/dialog_text_input.cpp
     dialog/dialog_utilities.cpp
+    dialog/dialog_usbsid_boards.cpp
 
     driver/driver_architecture_sidfactory2.cpp
     driver/driver_info.cpp
