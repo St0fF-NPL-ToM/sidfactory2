@@ -28,6 +28,7 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     resources
     utils/config
     utils
+    libraries/usbsid
 )
 set( HEADERS
     foundation/base/assert.h
@@ -105,6 +106,10 @@ set( HEADERS
     utils/rtmidi_utils.h
     utils/usercolors.h
     utils/utilities.h
+    utils/sidpanning.h
+
+    libraries/usbsid/USBSID.h
+    libraries/usbsid/USBSID_Manager.h
 )
 set( SOURCES
     foundation/graphics/color.cpp
@@ -161,6 +166,10 @@ set( SOURCES
     utils/rtmidi_utils.cpp
     utils/usercolors.cpp
     utils/utilities.cpp
+    utils/sidpanning.cpp
+
+    libraries/usbsid/USBSID.cpp
+    libraries/usbsid/USBSID_Manager.cpp
 )
 target_sources( SIDFactoryII PUBLIC ${HEADERS} ${SOURCES} )
 add_subdirectory( runtime )
