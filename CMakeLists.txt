@@ -71,9 +71,11 @@ elseif( WIN32 )
     include( FetchContent ) # SDL2 on Windows - puh - let's just grab it from the network …
     FetchContent_Declare( SDL2 GIT_REPOSITORY https://github.com/libsdl-org/SDL GIT_TAG SDL2 GIT_SHALLOW True )
     FetchContent_MakeAvailable( SDL2 )
-    set( SF2_LIBS SDL2::SDL2 SDL2::SDL2main )
+    add_subdirectory( libs/libusb )
+    set( SF2_LIBS SDL2::SDL2 SDL2::SDL2main libusb )
     set( CACHE{SF2_EXEC_DIR} FORCE VALUE "." )
     set( CACHE{SF2_DOC_DIR} FORCE VALUE "." )
+    include_directories( libs/usbsid-windows )
 else()
     Msg( FATAL "Seems like your operating system is not yet supported. Sorry!\nYou may as well contribute by extending this CMake-buildchain." )
 endif()
@@ -81,7 +83,6 @@ endif()
 set( BN "\"${_bd}.${_id}\"" )
 string( TOUPPER "${CMAKE_HOST_SYSTEM_NAME}" PLATFORM )
 add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
-
 # Create the executable inside the project base folder
 add_subdirectory( SIDFactoryII )
 
