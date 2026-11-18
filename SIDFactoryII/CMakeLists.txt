@@ -7,7 +7,7 @@
 cmake_minimum_required( VERSION 4.2 )
 
 # declare sources in this folder, then add the rest
-if ( True ) # handle building like the makefile
+if ( SF2_MAKEFILE_APPROACH ) # handle building like the makefile
     Msg( "Enumerating all source files of SF2 …" )
     # This is not good CMake practice! See the second path on how CMake likes it.
     # Second impact of this modus operandum: IDEs may not list header files.
