@@ -36,24 +36,30 @@ Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" 
 
 #[[ Preparation for installation differences:
     -----------------------------------------
+    - platform-options / preprocessor definitions
 	- library gathering
-	- preprocessor definitions
 	- installation directories
 ]]
+set( TPROP "" ) # differs per OS … CMAKE-property sent to add_executable for OS-special bundling
 if ( LINUX )
-    set( TPROP "" ) # differs per OS …
+    # Linux only configuration options
+    option( SF2_USE_ALSA "use the alsasound midi backend" off )
+    option( SF2_USE_JACK "use the jack audio connection kit for midi" on )
+    if ( SF2_USE_ALSA EQUAL SF2_USE_JACK )
+        Msg( FATAL "Please decide on one midi-interface to use! (CMake cache variables: 'SF2_USE_ALSA', 'SF2_USE_JACK')" )
+    elseif( SF2_USE_ALSA )
+        add_compile_definitions( __LINUX_ALSA__ )
+    else()
+        add_compile_definitions( __UNIX_JACK__ )
+    endif()
+    add_link_options( -flto -lpthread )
     # All major Distros provide PackageConfig. And they provide development packages of
-    # SDL2 and Jack. Please make sure the dev-packages of your distribution is installed:
-    # RedHat (Fedora, Ultramarine, CentOS)              | Debi(li)an (Ubuntu, …)
-    #   sdl2-compat-devel,                              |   libsdl2-dev
-    #   (jack-audio-connection-kit-devel)               |   libjack-dev
-    #       ||                                          |
-    #   (pulseaudio-jack-audio-connection-kit-devel)    |
-    cmake_pkg_config( IMPORT jack )
+    # SDL2 and Jack, as well as libusb, etc. - so please make sure those are installed.
     find_package( SDL2 QUIET )
     if ( NOT SDL2_FOUND )
         cmake_pkg_config( IMPORT SDL2 )
     endif()
+    cmake_pkg_config( IMPORT jack )
     cmake_pkg_config( IMPORT libusb-1.0 )
     get_directory_property( SF2_LIBS IMPORTED_TARGETS )
     list( FILTER SF2_LIBS EXCLUDE REGEX "Git.*" )
@@ -70,18 +76,21 @@ elseif( WIN32 )
     include( FetchContent ) # SDL2 on Windows - puh - let's just grab it from the network …
     FetchContent_Declare( SDL2 GIT_REPOSITORY https://github.com/libsdl-org/SDL GIT_TAG SDL2 GIT_SHALLOW True )
     FetchContent_MakeAvailable( SDL2 )
-    add_subdirectory( libs/libusb )
+    # see extra CMakeLists.txt in that subdirectory!
     set( SF2_LIBS SDL2::SDL2 SDL2::SDL2main libusb )
     set( CACHE{SF2_EXEC_DIR} FORCE VALUE "." )
     set( CACHE{SF2_DOC_DIR} FORCE VALUE "." )
+    add_subdirectory( libs/libusb )
     include_directories( libs/usbsid-windows )
 else()
     Msg( FATAL "Seems like your operating system is not yet supported. Sorry!\nYou may as well contribute by extending this CMake-buildchain." )
 endif()
+
 # prepare DEFINES: build-number and platform
 set( BN "\"${_bd}.${_id}\"" )
 string( TOUPPER "${CMAKE_HOST_SYSTEM_NAME}" PLATFORM )
 add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
+
 # Create the executable inside the project base folder
 add_subdirectory( SIDFactoryII )
 

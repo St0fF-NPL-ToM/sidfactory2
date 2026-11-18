@@ -5,10 +5,26 @@
     - main sources subdirectory
 ]]
 cmake_minimum_required( VERSION 4.2 )
+
 # declare sources in this folder, then add the rest
-Msg( "Creating basic target from main.cpp" )
-add_executable( SIDFactoryII ${TPROP} main.cpp )
-add_subdirectory( source )
+if ( True ) # handle building like the makefile
+    Msg( "Enumerating all source files of SF2 …" )
+    # This is not good CMake practice! See the second path on how CMake likes it.
+    # Second impact of this modus operandum: IDEs may not list header files.
+    file( GLOB_RECURSE SRCS LIST_DIRECTORIES off RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS "*.cpp" )
+    # replace the tester-sourcefile with the actual lib source file in minizip
+    list( TRANSFORM SRCS REPLACE "miniz_tester[.]cpp" "miniz.c" )
+    list( LENGTH SRCS _sn )
+    Msg( "… found ${_sn} source files, creating target." )
+    add_executable( SIDFactoryII ${TPROP} ${SRCS} )
+    target_include_directories( SIDFactoryII PUBLIC "source" )
+else()
+    Msg( "Creating basic target from main.cpp" )
+    add_executable( SIDFactoryII ${TPROP} main.cpp )
+
+    # add the rest in succession
+    add_subdirectory( source )
+endif()
 
 Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
 target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )

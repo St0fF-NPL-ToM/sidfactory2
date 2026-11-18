@@ -266,6 +266,7 @@ set( SOURCES
     dialog/dialog_utilities.cpp
     dialog/dialog_usbsid_boards.cpp
 
+
     driver/driver_architecture_sidfactory2.cpp
     driver/driver_info.cpp
     driver/driver_state.cpp
