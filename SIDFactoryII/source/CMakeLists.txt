@@ -167,5 +167,5 @@ set( SOURCES
     utils/sidpanning.cpp
 )
 target_sources( SIDFactoryII PRIVATE ${SOURCES} )
-target_sources( SIDFactoryII PRIVATE FILE_SET HEADERS TYPE HEADER FILES ${HEADERS} )
+target_sources( SIDFactoryII PRIVATE FILE_SET headers TYPE HEADERS FILES ${HEADERS} )
 add_subdirectory( runtime/editor )
