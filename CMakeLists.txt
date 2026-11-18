@@ -34,6 +34,9 @@ set( CMAKE_CXX_STANDARD 14 )                  # some libraries by now require mo
 set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evaluates true.
 Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
 
+# temporary option
+option( SF2_MAKEFILE_APPROACH "Use the same approach for building with CMake like the original SF2 Makefile." on )
+
 #[[ Preparation for installation differences:
     -----------------------------------------
     - platform-options / preprocessor definitions
