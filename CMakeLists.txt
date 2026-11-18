@@ -2,6 +2,19 @@
     CMakeLists Project file for SIDFactoryII
     ----------------------------------------
     This is a try to get one buildsystem working on all 3 major OS.
+        by St0fF/NPL^ToM 2026
+
+    Basic ideas and approach:
+    Having one build system for multiple OS eases maintenance, this should be out of question.
+    Here, starting out from the Linux Makefile, a CMake-buildsystem is declared pretty much the
+    way CMake "likes it".
+
+    This Master CMakeLists.txt:
+    -   declares the project, its options and variables
+    -   tries to find all build requirements, OS-dependently
+        -   using modern CMake techniques, where applicable: see FetchContent use in Windows path
+    -   then includes the subdirectories to produce the final target
+    -   manages installation related tasks
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
@@ -81,11 +94,11 @@ elseif( WIN32 )
     FetchContent_Declare( SDL2 GIT_REPOSITORY https://github.com/libsdl-org/SDL GIT_TAG SDL2 GIT_SHALLOW True )
     FetchContent_MakeAvailable( SDL2 )
     # see extra CMakeLists.txt in that subdirectory!
+    add_subdirectory( libs/libusb )
+    include_directories( libs/usbsid-windows )
     set( SF2_LIBS SDL2::SDL2 SDL2::SDL2main libusb )
     set( CACHE{SF2_EXEC_DIR} FORCE VALUE "." )
     set( CACHE{SF2_DOC_DIR} FORCE VALUE "." )
-    add_subdirectory( libs/libusb )
-    include_directories( libs/usbsid-windows )
 else()
     Msg( FATAL "Seems like your operating system is not yet supported. Sorry!\nYou may as well contribute by extending this CMake-buildchain." )
 endif()

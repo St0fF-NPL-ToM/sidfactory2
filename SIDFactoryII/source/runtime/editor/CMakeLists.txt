@@ -2,10 +2,11 @@
     CMakeLists Project file for SIDFactoryII
     ----------------------------------------
     This is a try to get one buildsystem working on all 3 major OS.
-    - editor subdirectory
+        by St0fF/NPL^ToM 2026    → editor subdirectory
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
+<<<<<<< HEAD
 target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     auxilarydata
     components
@@ -37,6 +38,8 @@ target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     utilities
     visualizer_components
 )
+=======
+>>>>>>> 2e70039 (tried to reduce amount of CML files, though the editor-cml is a little long for my taste.)
 set( HEADERS
     components_manager.h
     cursor_control.h
@@ -57,6 +60,7 @@ set( HEADERS
 
     components/utils/orderlist_utils.h
     components/utils/text_editing_data_source_table_text.h
+
     components/component_base.h
     components/component_button.h
     components/component_check_button.h
@@ -144,7 +148,6 @@ set( HEADERS
     instrument/instrumentdata.h
 
     keys/keyhook_setup.h
-
     optimize/optimizer.h
     overlays/overlay_flightrecorder.h
 
@@ -195,6 +198,7 @@ set( SOURCES
 
     components/utils/orderlist_utils.cpp
     components/utils/text_editing_data_source_table_text.cpp
+
     components/component_base.cpp
     components/component_button.cpp
     components/component_check_button.cpp
@@ -269,7 +273,6 @@ set( SOURCES
     dialog/dialog_utilities.cpp
     dialog/dialog_usbsid_boards.cpp
 
-
     driver/driver_architecture_sidfactory2.cpp
     driver/driver_info.cpp
     driver/driver_state.cpp
@@ -280,7 +283,6 @@ set( SOURCES
     instrument/instrumentdata.cpp
 
     keys/keyhook_setup.cpp
-
     optimize/optimizer.cpp
     overlays/overlay_flightrecorder.cpp
 
@@ -308,4 +310,6 @@ set( SOURCES
     visualizer_components/vizualizer_component_emulation_state.cpp
 )
 set( OTHERS )
-target_sources( SIDFactoryII PUBLIC ${HEADERS} ${SOURCES} ${OTHERS} )
+target_sources( SIDFactoryII PUBLIC ${SOURCES} )
+target_sources( SIDFactoryII PUBLIC FILE_SET HEADERS TYPE HEADER FILES ${HEADERS} )
+target_sources( SIDFactoryII PUBLIC FILE_SET RESOURCES TYPE HEADER FILES ${OTHERS} )
