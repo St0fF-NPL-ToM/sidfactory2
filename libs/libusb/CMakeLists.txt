@@ -1,9 +1,13 @@
 #[[
     CMakeLists Project file for SIDFactoryII / libusb
     -------------------------------------------------
+    created 2026-11-16 by Stefan <St0fF/NPL^ToM> Kaps
+
     This file is NOT read in case of a Linux compile.  Linux delivers all includes and libraries
     thru PackageConfig.  And libusb most likely already is part of your system - maybe you need
     the development-libraries, though …
+
+    Windows / Macos:    providing a CMake static library in-tree to link against
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
@@ -20,7 +24,7 @@ add_library( libusb STATIC
     libusb/sync.c
     libusb/strerror.c
 )
-target_include_directories( libusb INTERFACE libusb 
+target_include_directories( libusb INTERFACE libusb
                                    PRIVATE libusb/os )
 if ( WIN32 )
     target_sources( libusb PUBLIC

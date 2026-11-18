@@ -2,7 +2,21 @@
     CMakeLists Project file for SIDFactoryII
     ----------------------------------------
     This is a try to get one buildsystem working on all 3 major OS.
-    - main sources subdirectory
+        by St0fF/NPL^ToM 2026    → main SIDFactoryII subdirectory
+
+    I had non-explainable crashes, thus I added a Makefile-alike path, which simply enumerates all
+    cpp files and exchanges the miniz-tester with the miniz.c library file.  Using this path via
+    cache variable SF2_MAKEFILE_APPROACH may lead to your IDE only showing those translation unit
+    files, but no headers at all.  I would like to keep this path for testing purposes in the
+    future...
+        p.s.:   about those crashes: optimized vs. non-optimized builds were
+                the cause of different beahviours …
+
+    The main approach here:
+    -   declare the final target by adding main.cpp
+    -   append further sources including their respective subdirectories
+    -   apply acquired link library setup
+    -   produce installation tasks that originate in this subfolder
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
