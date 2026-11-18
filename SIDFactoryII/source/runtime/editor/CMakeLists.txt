@@ -310,6 +310,6 @@ set( SOURCES
     visualizer_components/vizualizer_component_emulation_state.cpp
 )
 set( OTHERS )
-target_sources( SIDFactoryII PUBLIC ${SOURCES} )
-target_sources( SIDFactoryII PUBLIC FILE_SET HEADERS TYPE HEADER FILES ${HEADERS} )
-target_sources( SIDFactoryII PUBLIC FILE_SET RESOURCES TYPE HEADER FILES ${OTHERS} )
+target_sources( SIDFactoryII PRIVATE ${SOURCES} )
+target_sources( SIDFactoryII PRIVATE FILE_SET headers TYPE HEADERS FILES ${HEADERS} )
+target_sources( SIDFactoryII PRIVATE FILE_SET resources TYPE HEADERS FILES ${OTHERS} )
