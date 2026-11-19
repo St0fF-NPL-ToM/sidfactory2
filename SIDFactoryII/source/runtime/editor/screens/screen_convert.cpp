@@ -138,7 +138,7 @@ namespace Editor
 		if (m_StatusBar != nullptr)
 			m_StatusBar->Update(inDeltaTick);
 
-		ComponentConsole& cout = *m_Console;
+		// ComponentConsole& cout = *m_Console;
 
 		if (m_Converter != nullptr)
 			m_Converter->Update();
@@ -155,10 +155,10 @@ namespace Editor
 						m_MainTextField->GetDimensions().m_Width - 22, m_MainTextField->GetDimensions().m_Height - 2,
 						10,
 						[&]()
-					{
-						m_SuccessfullConversionCallback(this, m_PathAndFilename, m_Converter->GetResult());
-						m_ExitScreenCallback();
-					});
+						{
+							m_SuccessfullConversionCallback(this, m_PathAndFilename, m_Converter->GetResult());
+							m_ExitScreenCallback();
+						});
 
 					m_ComponentsManager->AddComponent(button_ok);
 					m_ComponentsManager->SetComponentInFocus(button_ok);
@@ -167,4 +167,3 @@ namespace Editor
 		}
 	}
 }
-
