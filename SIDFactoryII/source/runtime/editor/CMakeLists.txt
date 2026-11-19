@@ -6,40 +6,6 @@
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
-<<<<<<< HEAD
-target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    auxilarydata
-    components
-    components/utils
-    converters
-    converters/atmds
-    converters/cc
-    converters/gt
-    converters/jch
-    converters/mod
-    converters/null
-    converters/utils
-    datacopy
-    datasources
-    debug
-    dialog
-    driver
-    instrument
-    keys
-    keys
-    optimize
-    overlays
-    packer
-    screens
-    screens/statusbar
-    undo
-    undo/undo_componentdata
-    undo/undo_datasource
-    utilities
-    visualizer_components
-)
-=======
->>>>>>> 2e70039 (tried to reduce amount of CML files, though the editor-cml is a little long for my taste.)
 set( HEADERS
     components_manager.h
     cursor_control.h

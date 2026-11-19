@@ -1,7 +1,7 @@
 #pragma once
 
-#include "idatasource.h"
 #include "datasource_emulation_memory.h"
+#include "idatasource.h"
 
 #include <memory>
 
@@ -69,14 +69,22 @@ namespace Editor
 			int m_DataLength;
 		};
 
+		struct UnpackResult
+		{
+			unsigned int m_Length;
+			unsigned int m_PackedSize;
+			unsigned char m_LastInstrumentSet;
+			unsigned char m_LastCommandSet;
+			bool m_PackingErrorState;
+		};
+
 		DataSourceSequence(
-			Emulation::CPUMemory* inCPUMemory, 
+			Emulation::CPUMemory* inCPUMemory,
 			const Editor::DriverInfo& inDriverInfo,
 			const Editor::DriverState& inDriverState,
 			unsigned char inSequenceIndex,
-			unsigned short inSourceAddress, 
-			int inBlockSize
-		);
+			unsigned short inSourceAddress,
+			int inBlockSize);
 		DataSourceSequence(const DataSourceSequence& inOther);
 		virtual ~DataSourceSequence();
 
@@ -101,15 +109,15 @@ namespace Editor
 		PackedDataEventPosition GetEventPositionInPackedData(int inEventPosition) const;
 
 		void ClearEvents();
-	private:
 
+	private:
 		void Unpack();
 
 		const Editor::DriverInfo& m_DriverInfo;
 		const Editor::DriverState& m_DriverState;
 		const unsigned char m_SequenceIndex;
 
-		unsigned int m_Length;		
+		unsigned int m_Length;
 		Event* m_Events;
 
 		unsigned char m_LastInstrumentSet;

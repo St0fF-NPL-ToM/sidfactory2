@@ -1,11 +1,12 @@
 #include "datasource_orderlist.h"
+#include "foundation/base/assert.h"
+#include "runtime/editor/driver/idriver_architecture.h"
 #include "runtime/emulation/cpumemory.h"
 #include <cstring>
-#include "foundation/base/assert.h"
 
 namespace Editor
 {
-	DataSourceOrderList::DataSourceOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inSourceAddress, int inBlockSize)
+	DataSourceOrderList::DataSourceOrderList(const IDriverArchitecture* inArchitecture, Emulation::CPUMemory* inCPUMemory, unsigned short inSourceAddress, int inBlockSize)
 		: DataSourceEmulationMemory(inCPUMemory, inSourceAddress, inBlockSize)
 		, m_Length(0)
 		, m_PackedSize(0)
@@ -70,7 +71,6 @@ namespace Editor
 	bool DataSourceOrderList::CanIncreaseSize() const
 	{
 		return m_Length < static_cast<unsigned int>(MaxEntryCount);
-
 	}
 
 	void DataSourceOrderList::IncreaseSize()
@@ -157,7 +157,7 @@ namespace Editor
 				end_index = i;
 				end_marker = val;
 
-				if(val == 0xff)
+				if (val == 0xff)
 					loop_index = m_Events[i].m_SequenceIndex;
 
 				break;
@@ -249,7 +249,7 @@ namespace Editor
 				if (count == inIndex + 1)
 				{
 					const unsigned char next_event = m_Data[i + 1];
-					const int return_index = next_event == 0xff ? m_Data[i + 2] : (i + 1);	// If the next event is a loop mark, the next next event is the loop offset into the orderlist data.
+					const int return_index = next_event == 0xff ? m_Data[i + 2] : (i + 1); // If the next event is a loop mark, the next next event is the loop offset into the orderlist data.
 
 					return { true, static_cast<unsigned char>(return_index), sequence, transpose };
 				}

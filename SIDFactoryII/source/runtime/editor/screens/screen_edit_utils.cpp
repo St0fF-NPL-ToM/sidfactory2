@@ -1,12 +1,12 @@
 #include "screen_edit_utils.h"
-#include "runtime/editor/driver/driver_info.h"
-#include "runtime/editor/driver/driver_state.h"
-#include "runtime/editor/driver/driver_utils.h"
-#include "runtime/editor/driver/idriver_architecture.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
 #include "runtime/editor/auxilarydata/auxilary_data_songs.h"
 #include "runtime/editor/datasources/datasource_orderlist.h"
 #include "runtime/editor/datasources/datasource_sequence.h"
+#include "runtime/editor/driver/driver_info.h"
+#include "runtime/editor/driver/driver_state.h"
+#include "runtime/editor/driver/driver_utils.h"
+#include "runtime/editor/driver/idriver_architecture.h"
 #include "runtime/emulation/cpumemory.h"
 
 #include "foundation/base/assert.h"
@@ -29,7 +29,7 @@ namespace Editor
 
 				// Reset contents of any subsequent sequences
 				IDriverArchitecture* driver_architecture = inDriverInfo.GetDriverArchitecture();
-				
+
 				for (int i = highest_sequence_index + 1; i < music_data.m_SequenceCount; ++i)
 				{
 					const unsigned short sequence_address = music_data.m_Sequence00Address + i * music_data.m_SequenceSize;
@@ -51,7 +51,7 @@ namespace Editor
 				for (int i = 0; i < music_data.m_SequenceCount; ++i)
 				{
 					const unsigned short sequence_address = music_data.m_Sequence00Address + i * music_data.m_SequenceSize;
-					
+
 					const unsigned char sequence_address_low = static_cast<unsigned char>(sequence_address & 0xff);
 					const unsigned char sequence_address_high = static_cast<unsigned char>(sequence_address >> 8);
 
@@ -71,7 +71,7 @@ namespace Editor
 			for (int i = 0; i < music_data.m_TrackCount * song_count; ++i)
 			{
 				const unsigned short order_list_data_address = music_data.m_OrderListTrack1Address + i * order_list_data_size;
-				outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(&inCPUMemory, order_list_data_address, order_list_data_size));
+				outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(inDriverInfo.GetDriverArchitecture(), &inCPUMemory, order_list_data_address, order_list_data_size));
 			}
 		}
 
@@ -92,7 +92,7 @@ namespace Editor
 						int index = j * music_data.m_TrackCount + i;
 
 						const unsigned short order_list_data_address = music_data.m_OrderListTrack1Address + index * order_list_data_size;
-						outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(&inCPUMemory, order_list_data_address, order_list_data_size));
+						outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(inDriverInfo.GetDriverArchitecture(), &inCPUMemory, order_list_data_address, order_list_data_size));
 					}
 				}
 			}
@@ -108,7 +108,7 @@ namespace Editor
 			for (int i = 0; i < music_data.m_TrackCount; ++i)
 			{
 				const unsigned short order_list_data_address = music_data.m_OrderListTrack1Address + (i + selected_song * music_data.m_TrackCount) * order_list_data_size;
-				outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(&inCPUMemory, order_list_data_address, order_list_data_size));
+				outOrderListDataSources.push_back(std::make_shared<DataSourceOrderList>(inDriverInfo.GetDriverArchitecture(), &inCPUMemory, order_list_data_address, order_list_data_size));
 			}
 		}
 
@@ -122,14 +122,12 @@ namespace Editor
 			{
 				const unsigned short sequence_data_address = music_data.m_Sequence00Address + i * sequence_data_size;
 				outSequenceDataSources.push_back(std::make_shared<DataSourceSequence>(
-					&inCPUMemory, 
+					&inCPUMemory,
 					inDriverInfo,
 					inDriverState,
-					static_cast<unsigned char>(i), 
-					sequence_data_address, 
-					sequence_data_size
-					)
-				);
+					static_cast<unsigned char>(i),
+					sequence_data_address,
+					sequence_data_size));
 			}
 		}
 	}

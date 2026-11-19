@@ -1,13 +1,14 @@
 #include "datasource_sequence.h"
-#include "runtime/emulation/cpumemory.h"
+#include "foundation/base/assert.h"
 #include "runtime/editor/driver/driver_info.h"
 #include "runtime/editor/driver/driver_state.h"
+#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/emulation/cpumemory.h"
 #include <cstring>
-#include "foundation/base/assert.h"
 
 namespace Editor
 {
-    const unsigned int DataSourceSequence::MaxEventCount = 1024;
+	const unsigned int DataSourceSequence::MaxEventCount = 1024;
 
 	DataSourceSequence::DataSourceSequence(
 		Emulation::CPUMemory* inCPUMemory,
@@ -15,8 +16,7 @@ namespace Editor
 		const Editor::DriverState& inDriverState,
 		const unsigned char inSequenceIndex,
 		unsigned short inSourceAddress,
-		int inBlockSize
-	)
+		int inBlockSize)
 		: DataSourceEmulationMemory(inCPUMemory, inSourceAddress, inBlockSize)
 		, m_DriverInfo(inDriverInfo)
 		, m_DriverState(inDriverState)
@@ -110,7 +110,7 @@ namespace Editor
 							const char new_data = m_Data[j];
 							const char old_data = (*m_CPUMemory)[m_SourceAddress + j];
 
-							if((new_data & 0xe0) == 0x80 || (old_data & 0xe0) == 0x80)
+							if ((new_data & 0xe0) == 0x80 || (old_data & 0xe0) == 0x80)
 							{
 								if (new_data != old_data)
 								{
@@ -128,7 +128,7 @@ namespace Editor
 			return true;
 		}();
 
-		if(may_push_sequence_data)
+		if (may_push_sequence_data)
 		{
 			m_CPUMemory->SetData(m_SourceAddress, m_Data, m_DataSize);
 			return true;
@@ -197,73 +197,12 @@ namespace Editor
 	void DataSourceSequence::Unpack()
 	{
 		ClearEvents();
-
-		int event_index = 0;
-		int duration = 0;
-		bool tie_note = false;
-
-		for (int i = 0; i < 0x100;)
-		{
-			unsigned char value = m_Data[i++];
-
-			if (value == 0x7f)
-			{
-				m_PackedSize = i;
-				break;
-			}
-
-			if (value >= 0xc0)	// Command
-			{
-				m_Events[event_index].m_Command = value;
-				m_LastCommandSet = value & 0x3f;
-				value = m_Data[i++];
-
-				FOUNDATION_ASSERT(i < 0x100);
-			}
-			else
-				m_Events[event_index].m_Command = 0x80;
-
-			if (value >= 0xa0) // Instrument
-			{
-				m_Events[event_index].m_Instrument = value;
-				m_LastInstrumentSet = value & 0x1f;
-				value = m_Data[i++];
-
-				FOUNDATION_ASSERT(i < 0x100);
-			}
-			else
-				m_Events[event_index].m_Instrument = 0x80;
-
-			if (value >= 0x80)
-			{
-				duration = value & 0x0f;
-
-				tie_note = (value & 0x10) != 0;
-
-				if (tie_note)
-					m_Events[event_index].m_Instrument = 0x90;
-
-				value = m_Data[i++];
-
-				FOUNDATION_ASSERT(i < 0x100);
-			}
-
-			FOUNDATION_ASSERT(value < 0x80);
-
-			m_Events[event_index++].m_Note = value;
-
-			for (int j = 0; j < duration; ++j)
-			{
-				m_Events[event_index].m_Command = 0x80;
-				m_Events[event_index].m_Instrument = 0x80;
-				m_Events[event_index].m_Note = value != 0x00 ? 0x7e : 0x00;
-
-				event_index++;
-			}
-		}
-
-		m_Length = event_index;
-		m_PackingErrorState = false;
+		auto ur = m_DriverInfo.GetDriverArchitecture()->UnpackSequence(*this, m_Data);
+		m_Length = ur.m_Length;
+		m_PackedSize = ur.m_PackedSize;
+		m_LastInstrumentSet = ur.m_LastInstrumentSet;
+		m_LastCommandSet = ur.m_LastCommandSet;
+		m_PackingErrorState = ur.m_PackingErrorState;
 	}
 
 
@@ -281,86 +220,9 @@ namespace Editor
 
 	DataSourceSequence::PackResult DataSourceSequence::Pack()
 	{
-		m_LastCommandSet = 0xff;
-		m_LastInstrumentSet = 0xff;
-
-		int packIndex = 0;
-		int lastDuration = -1;
-
-		for (unsigned int i = 0; i < m_Length; ++i)
-		{
-			unsigned char instrument = m_Events[i].m_Instrument;
-			unsigned char command = m_Events[i].m_Command;
-			unsigned char note = m_Events[i].m_Note;
-
-			// Look for next event
-			int duration = 0;
-
-			for (unsigned int j = i + 1; j < m_Length; ++j)
-			{
-				if (m_Events[j].m_Instrument != 0x80 || m_Events[j].m_Command != 0x80)
-					break;
-
-				if (note == 0)
-				{
-					if (m_Events[j].m_Note != 0)
-						break;
-				}
-				else
-				{
-					if (m_Events[j].m_Note != 0x7e)
-						break;
-				}
-
-				duration++;
-
-				if (duration >= 0x0f)
-					break;
-			}
-
-			bool bTieNote = (instrument == 0x90);
-
-			if (command != 0x80)
-			{
-				m_InternalBuffer[packIndex++] = command;
-				m_LastCommandSet = command & 0x3f;
-			}
-			if (instrument >= 0xa0)
-			{
-				m_InternalBuffer[packIndex++] = instrument;
-				m_LastInstrumentSet = instrument & 0x1f;
-			}
-
-			if (lastDuration != duration || bTieNote)
-			{
-				m_InternalBuffer[packIndex++] = static_cast<unsigned char>((duration | 0x80) | (bTieNote ? 0x10 : 0x00));
-				lastDuration = duration;
-			}
-
-			m_InternalBuffer[packIndex++] = note;
-
-			i += duration;
-		}
-
-		// Create a buffer of the exact size of the packed data and copy the data into it
-		m_PackingErrorState = !(packIndex > 0 && packIndex < 0xff);
-
-		if(!m_PackingErrorState)
-		{
-			// Insert end mark
-			m_InternalBuffer[packIndex++] = 0x7f;
-
-			unsigned char* packed_data = new unsigned char[packIndex];
-
-			for (int i = 0; i < packIndex; i++)
-				packed_data[i] = m_InternalBuffer[i];
-
-			m_PackingErrorState = false;
-
-			return PackResult(packed_data, packIndex);
-		}
-
-		return PackResult();
+		auto res = m_DriverInfo.GetDriverArchitecture()->PackSequence(*this, m_InternalBuffer);
+		m_PackingErrorState = (res.m_DataLength == 0);
+		return res;
 	}
 
 	void DataSourceSequence::SendPackedDataToBuffer(const PackResult& inPackResult)
@@ -380,33 +242,8 @@ namespace Editor
 	}
 
 
-
 	DataSourceSequence::PackedDataEventPosition DataSourceSequence::GetEventPositionInPackedData(int inEventPosition) const
 	{
-		int event_position = 0;
-		int index = 0;
-		unsigned char current_delta_tick = 0;
-		unsigned char current_instrument = 0;
-
-		while (index < static_cast<int>(m_PackedSize))
-		{
-			if (event_position >= inEventPosition)
-				return { true, static_cast<unsigned char>(index), static_cast<unsigned char>(event_position - inEventPosition), current_delta_tick, current_instrument, m_Data[index] == 0x7f };
-
-			while (m_Data[index] >= 0x80)
-			{
-				if (m_Data[index] < 0xa0)
-					current_delta_tick = m_Data[index] & 0x0f;
-				else if (m_Data[index] < 0xc0)
-					current_instrument = m_Data[index];
-
-				++index;
-			}
-
-			event_position += (current_delta_tick + 1);
-			++index;
-		}
-
-		return { false, 0, 0, 0, 0, false };
+		return m_DriverInfo.GetDriverArchitecture()->GetSequenceIndex(inEventPosition, m_Data, m_PackedSize);
 	}
 }
