@@ -228,7 +228,7 @@ namespace Editor
 		return { ++pos, row };
 	}
 
-	DataSourceSequence::PackResult DriverArchitectureATMDS3::PackSequence(const DataSourceSequence& inData, unsigned char* m_InternalBuffer) const { }
+	DataSourceSequence::PackResult DriverArchitectureATMDS3::PackSequence(const DataSourceSequence& inData, unsigned char* m_InternalBuffer) const { return {}; }
 
 	DataSourceSequence::PackedDataEventPosition DriverArchitectureATMDS3::GetSequenceIndex(int inEventPosition, const unsigned char* m_Data, const int m_PackedSize) const
 	{
