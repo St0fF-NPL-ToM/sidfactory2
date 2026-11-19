@@ -23,5 +23,7 @@ namespace Editor
 
 		std::shared_ptr<Utility::C64File> m_file;
 		int m_song { -1 };
+		// Console
+		std::shared_ptr<ComponentConsole> m_Console;
 	};
 }

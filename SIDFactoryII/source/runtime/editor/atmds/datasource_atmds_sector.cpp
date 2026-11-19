@@ -1,22 +1,21 @@
-#include "datasource_sequence.h"
-#include "runtime/emulation/cpumemory.h"
+#include "datasource_atmds_sector.h"
+#include "foundation/base/assert.h"
 #include "runtime/editor/driver/driver_info.h"
 #include "runtime/editor/driver/driver_state.h"
+#include "runtime/emulation/cpumemory.h"
 #include <cstring>
-#include "foundation/base/assert.h"
 
 namespace Editor
 {
-    const unsigned int DataSourceSequence::MaxEventCount = 1024;
+	const unsigned int DataSourceSector::MaxEventCount = 1024;
 
-	DataSourceSequence::DataSourceSequence(
+	DataSourceSector::DataSourceSector(
 		Emulation::CPUMemory* inCPUMemory,
 		const Editor::DriverInfo& inDriverInfo,
 		const Editor::DriverState& inDriverState,
 		const unsigned char inSequenceIndex,
 		unsigned short inSourceAddress,
-		int inBlockSize
-	)
+		int inBlockSize)
 		: DataSourceEmulationMemory(inCPUMemory, inSourceAddress, inBlockSize)
 		, m_DriverInfo(inDriverInfo)
 		, m_DriverState(inDriverState)
@@ -33,7 +32,7 @@ namespace Editor
 		PullDataFromSource();
 	}
 
-	DataSourceSequence::DataSourceSequence(const DataSourceSequence& inOther)
+	DataSourceSector::DataSourceSector(const DataSourceSector& inOther)
 		: DataSourceEmulationMemory(inOther.m_CPUMemory, inOther.m_SourceAddress, inOther.m_DataSize)
 		, m_DriverInfo(inOther.m_DriverInfo)
 		, m_DriverState(inOther.m_DriverState)
@@ -49,7 +48,7 @@ namespace Editor
 			m_Events[i] = inOther.m_Events[i];
 	}
 
-	DataSourceSequence::~DataSourceSequence()
+	DataSourceSector::~DataSourceSector()
 	{
 		delete[] m_Events;
 		delete[] m_InternalBuffer;
@@ -57,7 +56,7 @@ namespace Editor
 
 	//------------------------------------------------------------------------------------------------------------------
 
-	void DataSourceSequence::operator=(const DataSourceSequence& inRhs)
+	void DataSourceSector::operator=(const DataSourceSector& inRhs)
 	{
 		for (int i = 0; i < MaxEventCount; ++i)
 			m_Events[i] = inRhs.m_Events[i];
@@ -65,7 +64,7 @@ namespace Editor
 		m_Length = inRhs.m_Length;
 	}
 
-	DataSourceSequence::Event& DataSourceSequence::operator[](int inIndex)
+	DataSourceSector::Event& DataSourceSector::operator[](int inIndex)
 	{
 		FOUNDATION_ASSERT(inIndex >= 0);
 		FOUNDATION_ASSERT(inIndex < MaxEventCount);
@@ -73,7 +72,7 @@ namespace Editor
 		return m_Events[inIndex];
 	}
 
-	const DataSourceSequence::Event& DataSourceSequence::operator[](int inIndex) const
+	const DataSourceSector::Event& DataSourceSector::operator[](int inIndex) const
 	{
 		FOUNDATION_ASSERT(inIndex >= 0);
 		FOUNDATION_ASSERT(inIndex < MaxEventCount);
@@ -83,7 +82,7 @@ namespace Editor
 
 	//------------------------------------------------------------------------------------------------------------------
 
-	bool DataSourceSequence::PushDataToSource()
+	bool DataSourceSector::PushDataToSource()
 	{
 		FOUNDATION_ASSERT(m_CPUMemory != nullptr);
 		FOUNDATION_ASSERT(m_CPUMemory->IsLocked());
@@ -110,7 +109,7 @@ namespace Editor
 							const char new_data = m_Data[j];
 							const char old_data = (*m_CPUMemory)[m_SourceAddress + j];
 
-							if((new_data & 0xe0) == 0x80 || (old_data & 0xe0) == 0x80)
+							if ((new_data & 0xe0) == 0x80 || (old_data & 0xe0) == 0x80)
 							{
 								if (new_data != old_data)
 								{
@@ -128,7 +127,7 @@ namespace Editor
 			return true;
 		}();
 
-		if(may_push_sequence_data)
+		if (may_push_sequence_data)
 		{
 			m_CPUMemory->SetData(m_SourceAddress, m_Data, m_DataSize);
 			return true;
@@ -138,17 +137,17 @@ namespace Editor
 	}
 
 
-	unsigned int DataSourceSequence::GetPackedSize() const
+	unsigned int DataSourceSector::GetPackedSize() const
 	{
 		return m_PackedSize;
 	}
 
-	unsigned int DataSourceSequence::GetLength() const
+	unsigned int DataSourceSector::GetLength() const
 	{
 		return m_Length;
 	}
 
-	void DataSourceSequence::SetLength(unsigned int inLength)
+	void DataSourceSector::SetLength(unsigned int inLength)
 	{
 		FOUNDATION_ASSERT(inLength <= MaxEventCount);
 		m_Length = inLength;
@@ -157,7 +156,7 @@ namespace Editor
 
 	//------------------------------------------------------------------------------------------------------------------
 
-	void DataSourceSequence::PullDataFromSource()
+	void DataSourceSector::PullDataFromSource()
 	{
 		FOUNDATION_ASSERT(m_CPUMemory != nullptr);
 		FOUNDATION_ASSERT(m_Data != nullptr);
@@ -171,7 +170,7 @@ namespace Editor
 	}
 
 
-	void DataSourceSequence::ClearEvents()
+	void DataSourceSector::ClearEvents()
 	{
 		m_LastCommandSet = 0xff;
 		m_LastInstrumentSet = 0xff;
@@ -194,7 +193,7 @@ namespace Editor
 	// c0 - ff	= Set command ($00 - $3f)
 	//------------------------------------------------------------------------------------------------------------------
 
-	void DataSourceSequence::Unpack()
+	void DataSourceSector::Unpack()
 	{
 		ClearEvents();
 
@@ -212,7 +211,7 @@ namespace Editor
 				break;
 			}
 
-			if (value >= 0xc0)	// Command
+			if (value >= 0xc0) // Command
 			{
 				m_Events[event_index].m_Command = value;
 				m_LastCommandSet = value & 0x3f;
@@ -267,19 +266,19 @@ namespace Editor
 	}
 
 
-	unsigned char DataSourceSequence::GetLastInstrumentSet() const
+	unsigned char DataSourceSector::GetLastInstrumentSet() const
 	{
 		return m_LastInstrumentSet;
 	}
 
 
-	unsigned char DataSourceSequence::GetLastCommandSet() const
+	unsigned char DataSourceSector::GetLastCommandSet() const
 	{
 		return m_LastCommandSet;
 	}
 
 
-	DataSourceSequence::PackResult DataSourceSequence::Pack()
+	DataSourceSector::PackResult DataSourceSector::Pack()
 	{
 		m_LastCommandSet = 0xff;
 		m_LastInstrumentSet = 0xff;
@@ -345,7 +344,7 @@ namespace Editor
 		// Create a buffer of the exact size of the packed data and copy the data into it
 		m_PackingErrorState = !(packIndex > 0 && packIndex < 0xff);
 
-		if(!m_PackingErrorState)
+		if (!m_PackingErrorState)
 		{
 			// Insert end mark
 			m_InternalBuffer[packIndex++] = 0x7f;
@@ -363,7 +362,7 @@ namespace Editor
 		return PackResult();
 	}
 
-	void DataSourceSequence::SendPackedDataToBuffer(const PackResult& inPackResult)
+	void DataSourceSector::SendPackedDataToBuffer(const PackResult& inPackResult)
 	{
 		FOUNDATION_ASSERT(inPackResult.m_DataLength <= m_DataSize);
 
@@ -374,14 +373,13 @@ namespace Editor
 	}
 
 
-	bool DataSourceSequence::IsInErrorState() const
+	bool DataSourceSector::IsInErrorState() const
 	{
 		return m_PackingErrorState;
 	}
 
 
-
-	DataSourceSequence::PackedDataEventPosition DataSourceSequence::GetEventPositionInPackedData(int inEventPosition) const
+	DataSourceSector::PackedDataEventPosition DataSourceSector::GetEventPositionInPackedData(int inEventPosition) const
 	{
 		int event_position = 0;
 		int index = 0;

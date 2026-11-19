@@ -1,17 +1,17 @@
 #include "screen_convert.h"
 
-#include "runtime/editor/screens/statusbar/status_bar.h"
-#include "runtime/editor/converters/converterbase.h"
-#include "runtime/editor/components/component_console.h"
-#include "runtime/editor/components/component_button.h"
-#include "foundation/graphics/viewport.h"
 #include "foundation/graphics/textfield.h"
-#include "utils/utilities.h"
+#include "foundation/graphics/viewport.h"
+#include "runtime/editor/components/component_button.h"
+#include "runtime/editor/components/component_console.h"
+#include "runtime/editor/converters/converterbase.h"
+#include "runtime/editor/screens/statusbar/status_bar.h"
 #include "utils/usercolors.h"
+#include "utils/utilities.h"
 
-#include <string>
-#include <memory>
 #include "foundation/base/assert.h"
+#include <memory>
+#include <string>
 
 using namespace Utility;
 
@@ -26,8 +26,7 @@ namespace Editor
 		KeyHookStore& inKeyHookStore,
 		Foundation::IPlatform* inPlatform,
 		std::function<void(void)> inExitScreenCallback,
-		std::function<bool(ScreenBase*, const std::string&, std::shared_ptr<C64File>)> inSuccessfullConversionCallback
-	)
+		std::function<bool(ScreenBase*, const std::string&, std::shared_ptr<C64File>)> inSuccessfullConversionCallback)
 		: ScreenBase(inViewport, inMainTextField, inCursorControl, inDisplayState, inKeyHookStore)
 		, m_Platform(inPlatform)
 		, m_ExitScreenCallback(inExitScreenCallback)
@@ -41,8 +40,7 @@ namespace Editor
 		const std::string& inPathAndFilename,
 		std::shared_ptr<ConverterBase> inConverter,
 		void* inData,
-		unsigned int inDataSize
-	)
+		unsigned int inDataSize)
 	{
 		m_PathAndFilename = inPathAndFilename;
 		m_Converter = inConverter;
@@ -81,7 +79,8 @@ namespace Editor
 			m_MainTextField, "Cancel",
 			m_MainTextField->GetDimensions().m_Width - 11, m_MainTextField->GetDimensions().m_Height - 2,
 			10,
-			[&]() { m_ExitScreenCallback(); });
+			[&]()
+			{ m_ExitScreenCallback(); });
 		m_ComponentsManager->AddComponent(button_cancel);
 
 		m_ComponentsManager->SetGroupEnabledForInput(0, true);
@@ -138,8 +137,6 @@ namespace Editor
 		if (m_StatusBar != nullptr)
 			m_StatusBar->Update(inDeltaTick);
 
-		ComponentConsole& cout = *m_Console;
-
 		if (m_Converter != nullptr)
 			m_Converter->Update();
 		if (m_Converter->GetState() == ConverterBase::State::Completed)
@@ -155,10 +152,10 @@ namespace Editor
 						m_MainTextField->GetDimensions().m_Width - 22, m_MainTextField->GetDimensions().m_Height - 2,
 						10,
 						[&]()
-					{
-						m_SuccessfullConversionCallback(this, m_PathAndFilename, m_Converter->GetResult());
-						m_ExitScreenCallback();
-					});
+						{
+							m_SuccessfullConversionCallback(this, m_PathAndFilename, m_Converter->GetResult());
+							m_ExitScreenCallback();
+						});
 
 					m_ComponentsManager->AddComponent(button_ok);
 					m_ComponentsManager->SetComponentInFocus(button_ok);
@@ -167,4 +164,3 @@ namespace Editor
 		}
 	}
 }
-
