@@ -99,6 +99,6 @@ namespace Editor
 
 	private:
 		void GenerateCommandTable(Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo);
-		bool m_CommandsCreated { false };
+		std::vector<ATMDS_cmd> m_CreatedCommands;
 	};
 }

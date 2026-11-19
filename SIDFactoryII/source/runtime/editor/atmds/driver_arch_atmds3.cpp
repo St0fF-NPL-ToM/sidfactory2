@@ -31,7 +31,7 @@ namespace Editor
 
 	void DriverArchitectureATMDS3::PostInitSetPlaybackIndices(std::vector<PlayMarkerInfo>& inPlayMarkerInfoList, Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo)
 	{
-		if (!m_CommandsCreated)
+		if (m_CreatedCommands.empty())
 			GenerateCommandTable(inCPUMemory, inDriverInfo);
 
 		const auto& driver_common = inDriverInfo.GetDriverCommon();
@@ -67,7 +67,6 @@ namespace Editor
 
 	void DriverArchitectureATMDS3::GenerateCommandTable(Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo)
 	{
-		std::vector<ATMDS_cmd> cmds;
 		std::set<unsigned char> sectors_parsed;
 		char tmp[256];
 		// parse all songs, all tracks, all used sequences …
@@ -86,9 +85,9 @@ namespace Editor
 				auto addRC = [&](ATMDS_cmd::cmd_use cmd, unsigned char val)
 				{
 					if (rowCmd < 0)
-						rowCmd = cmds.size(), cmds.emplace_back(cmd, val);
+						rowCmd = m_CreatedCommands.size(), m_CreatedCommands.emplace_back(cmd, val);
 					else
-						cmds.back().set(cmd, val);
+						m_CreatedCommands.back().set(cmd, val);
 				};
 				for (int pos = 0; pos < 256; pos++)
 				{
@@ -141,8 +140,7 @@ namespace Editor
 			}
 		}
 		// Command Table sollte nun vollständig gebaut sein ... also übertragen.
-		inCPUMemory->SetData(0x4000 - 10 * 128, cmds.data(), cmds.size() * sizeof(ATMDS_cmd));
-		m_CommandsCreated = true;
+		inCPUMemory->SetData(0x4000 - 10 * 128, m_CreatedCommands.data(), m_CreatedCommands.size() * sizeof(ATMDS_cmd));
 	}
 
 	DataSourceOrderList::PackResult DriverArchitectureATMDS3::PackOrderList(const DataSourceOrderList& inData, unsigned char* m_InternalBuffer) const
@@ -232,9 +230,140 @@ namespace Editor
 
 	DataSourceSequence::PackResult DriverArchitectureATMDS3::PackSequence(const DataSourceSequence& inData, unsigned char* m_InternalBuffer) const { }
 
-	DataSourceSequence::PackedDataEventPosition DriverArchitectureATMDS3::GetSequenceIndex(int inEventPosition, const unsigned char* m_Data, const int m_PackedSize) const { }
+	DataSourceSequence::PackedDataEventPosition DriverArchitectureATMDS3::GetSequenceIndex(int inEventPosition, const unsigned char* m_Data, const int m_PackedSize) const
+	{
+		DataSourceSequence::PackedDataEventPosition r { true, 0, 0, 0, 0x80, false };
+		// first pass to determine sector duration
+		int pos = 0;
+		do
+		{
+			if (m_Data[pos] == 0xff)
+				break;
 
-	DataSourceSequence::UnpackResult DriverArchitectureATMDS3::UnpackSequence(DataSourceSequence& outData, unsigned char* m_Data) const { }
+			if (m_Data[pos] < 0x80 || m_Data[pos] > 0xfb)
+			{
+				if (m_Data[pos] >= 0x60 && m_Data[pos] < 0x80)
+					pos += 2; // skip over glide_id and target_note
+				r.m_RemainingTicks += 1 + r.m_CurrentDurationValue;
+			}
+			if (m_Data[pos] >= 0x80 && m_Data[pos] < 0xc0)
+				r.m_CurrentDurationValue = m_Data[pos] & 0x3f;
+		} while (++pos < 256);
+		// second pass to finally retrieve requested information
+		for (pos = r.m_CurrentDurationValue = 0;; ++r.m_Index)
+		{
+			if (m_Data[r.m_Index] == 0xff)
+			{
+				return r.m_IsValid = false, r;
+			}
+			else if (m_Data[r.m_Index] >= 0x80 && m_Data[r.m_Index] < 0xc0)
+			{
+				r.m_CurrentDurationValue = m_Data[r.m_Index] & 0x3f;
+			}
+			else if (m_Data[r.m_Index] >= 0xc0 && m_Data[r.m_Index] < 0xe0)
+			{
+				r.m_CurrentInstrument = m_Data[r.m_Index] & 0x1f;
+			}
+			else if (m_Data[r.m_Index] < 0x80 || m_Data[r.m_Index] > 0xfb)
+			{
+				int offset { r.m_Index + ((m_Data[r.m_Index] >= 0x60 && m_Data[r.m_Index] < 0x80) ? 3 : 1) };
+				r.m_RemainingTicks -= 1 + r.m_CurrentDurationValue;
+				if (inEventPosition == pos)
+				{
+					r.m_NextIsEndOfSequence = (m_Data[offset] == 0xff);
+					return r;
+				}
+				else
+					r.m_Index = offset - 1, ++pos;
+			}
+			if (r.m_Index == 0xff)
+				return r.m_IsValid = false, r;
+		}
+	}
 
+	DataSourceSequence::UnpackResult DriverArchitectureATMDS3::UnpackSequence(DataSourceSequence& outData, unsigned char* m_Data) const
+	{
+		int event_index = 0;
+		int duration = 0;
+		bool tie_note = false, gate_state = false, reset_state = false;
+		ATMDS_cmd cc { ATMDS_cmd::none, 0 };
+		DataSourceSequence::UnpackResult r {};
+		auto init = [&](int index)
+		{
+			auto& di = outData[index];
+			di.m_Command = 0x80;
+			di.m_Instrument = 0x80;
+			di.m_Note = gate_state ? 0x7e : 0x00;
+		};
+		init(0);
+		for (int i = 0; i < 0x100; i++)
+		{
+			unsigned char value = m_Data[i++];
+			auto nxt = [&](void)
+			{ const auto ov = value; value = m_Data[i++]; return ov; };
 
+			if (value == 0xff) // end sector - nothing follows!
+			{
+				r.m_PackedSize = i;
+				break;
+			}
+			else if (value < 0x80 || value > 0xfb) // end of row
+			{
+				if (value > 0x80) // pause-command
+				{
+					reset_state = (value == 0xfc);
+					if (value == 0xfd)
+						gate_state = !gate_state;
+					outData[event_index].m_Note = gate_state ? 0x7e : 0;
+				}
+				else
+				{
+					if (tie_note)
+						outData[event_index].m_Instrument = 0x90;
+					else
+						gate_state = true;
+					if (value > 0x60u) // Glide FX
+					{
+						cc.set(ATMDS_cmd::uses_G, nxt() & 0x1fu);
+						cc.set(ATMDS_cmd::none, nxt());
+						// now, only the init note follows (already inside "value")
+					}
+					outData[event_index].m_Note = value + 1;
+				}
+				if (cc.m_uses) // anything used?
+					// find command in command list, set respective id
+					r.m_LastCommandSet = outData[event_index].m_Command = std::find(m_CreatedCommands.begin(), m_CreatedCommands.end(), cc) - m_CreatedCommands.begin();
+				else
+					outData[event_index].m_Command = 0x80;
+				// reset internal command, fill up till next event
+				cc = { ATMDS_cmd::none, 0 };
+				for (int d = 0; d <= duration; ++d)
+					init(++event_index);
+			}
+			else // all other options build up the current row
+			{
+				if (value < 0xc0)
+					duration = value & 0x3f;
+				else if (value < 0xe0)
+				{
+					r.m_LastInstrumentSet = value & 0x1f;
+					outData[event_index].m_Instrument = 0xa0 | r.m_LastInstrumentSet;
+				}
+				else if (value < 0xfb)
+					switch (nxt())
+					{ // clang-format off
+						case 0xf6:	cc.set(ATMDS_cmd::uses_FP, value);	break;
+						case 0xf7:	cc.set(ATMDS_cmd::uses_PP, value);	break;
+						case 0xf8:	cc.set(ATMDS_cmd::uses_FF, value);	break;
+						case 0xf9:	cc.set(ATMDS_cmd::uses_SR, value);	break;
+						case 0xfa:	cc.set(ATMDS_cmd::uses_AD, value);	break;
+					} // clang-format on
+				else
+					tie_note = !tie_note;
+			}
+		}
+		r.m_Length = event_index;
+		r.m_PackingErrorState = false;
+		return r;
+	}
 }

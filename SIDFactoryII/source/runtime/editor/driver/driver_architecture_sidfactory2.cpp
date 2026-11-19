@@ -365,8 +365,6 @@ namespace Editor
 
 	DataSourceSequence::UnpackResult DriverArchitectureSidFactory2::UnpackSequence(DataSourceSequence& m_Events, unsigned char* m_Data) const
 	{
-		m_Events.ClearEvents();
-
 		int event_index = 0;
 		int duration = 0;
 		bool tie_note = false;
