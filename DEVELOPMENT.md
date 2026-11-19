@@ -67,6 +67,7 @@ hand, unmount it and run `make dmg` for the final compressed image. Other target
 `macos/Makefile`:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ### Linux
 
 #### Ubuntu
@@ -83,14 +84,25 @@ libusb instead:
 
 <<<<<<< HEAD
 #### Fedora / RedHat-descendants
+=======
+- `make app`: only the universal `artifacts/SIDFactoryII.app`
+- `make universal`: only the universal executable `artifacts/SIDFactoryII`
+- `make clean`: remove the objects and the `artifacts` folder
+>>>>>>> 9e933c7d24acae4e2e1a57701cdc7cb33e55df4a
 
-Install prerequisites:
+USBSID-Pico output needs no driver installation on macOS.
 
+<<<<<<< HEAD
     sudo dnf update -y
     sudo dnf install -y gcc-c++ make git sdl2-compat-devel
 
 #### Linux building
 =======
+=======
+A 'linux-style' binary for debugging is built from the root folder with the Homebrew SDL2 and
+libusb instead:
+
+>>>>>>> 9e933c7d24acae4e2e1a57701cdc7cb33e55df4a
     brew install sdl2 libusb pkg-config
     make PLATFORM=MACOS
 
@@ -126,7 +138,10 @@ To build and run from the root folder:
 `make` builds `artifacts/SIDFactoryII` with the resources in the same folder, `make run` starts it with a
 demo tune. For a distribution folder `artifacts/SIDFactoryII_LINUX_ALSA_<build>` with the
 stripped executable, music and documentation:
+<<<<<<< HEAD
 >>>>>>> c72b710 (Usbsid support (#220))
+=======
+>>>>>>> 9e933c7d24acae4e2e1a57701cdc7cb33e55df4a
 
     make dist
 

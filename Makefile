@@ -53,9 +53,12 @@ LINKER_FLAGS := $(LINKER_FLAGS) $(shell pkg-config --libs libusb-1.0) -lpthread
 
 ifeq ($(PLATFORM),LINUX)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	CC_FLAGS := $(CC_FLAGS) -D__UNIX_JACK__
 	LINKER_FLAGS := $(LINKER_FLAGS) $(shell pkgconf --libs jack)
 =======
+=======
+>>>>>>> 9e933c7d24acae4e2e1a57701cdc7cb33e55df4a
 	ifeq ($(LINUXAUDIO),JACK)
 		CC_FLAGS := $(CC_FLAGS) -D__UNIX_JACK__
 		LINKER_FLAGS := $(LINKER_FLAGS) -ljack
@@ -65,7 +68,10 @@ ifeq ($(PLATFORM),LINUX)
 		CC_FLAGS := $(CC_FLAGS) -D__LINUX_ALSA__
 		LINKER_FLAGS := $(LINKER_FLAGS) -lasound
 	endif
+<<<<<<< HEAD
 >>>>>>> c72b710 (Usbsid support (#220))
+=======
+>>>>>>> 9e933c7d24acae4e2e1a57701cdc7cb33e55df4a
 endif
 
 ifeq ($(PLATFORM),MACOS)
