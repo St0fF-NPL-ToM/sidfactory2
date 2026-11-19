@@ -1,7 +1,7 @@
 #pragma once
 
+#include "idatasource.h"
 #include "datasource_emulation_memory.h"
-#include "runtime/editor/driver/idriver_architecture.h"
 
 #include <memory>
 
@@ -49,7 +49,7 @@ namespace Editor
 			unsigned char m_CurrentTranspose;
 		};
 
-		DataSourceOrderList(IDriverArchitecture* inArch, Emulation::CPUMemory* inCPUMemory, unsigned short inSourceAddress, int inBlockSize);
+		DataSourceOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inSourceAddress, int inBlockSize);
 		virtual ~DataSourceOrderList();
 
 		Entry& operator[](int inIndex);
@@ -84,7 +84,5 @@ namespace Editor
 		Entry* m_Events;
 		unsigned char* m_InternalBuffer;
 		unsigned int m_PackedSize;
-
-		IDriverArchitecture* m_Arch;
 	};
 }

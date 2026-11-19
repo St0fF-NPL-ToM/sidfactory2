@@ -73,46 +73,46 @@ namespace Editor
 	{
 		if (GetState() == State::Initialized)
 		{
-			SF2::Interface sf2(m_Platform, *m_Console);
-			m_State = State::Convert;
-			auto& out = (sf2.GetCout() << "\nATMDS-CONVERT:\n- load default driver:");
+			// SF2::Interface sf2(m_Platform, *m_Console);
+			// m_State = State::Convert;
+			// auto& out = (sf2.GetCout() << "\nATMDS-CONVERT:\n- load default driver:");
 
-			const path driver_path = m_Platform->Storage_GetDriversHomePath();
-			const path driver_path_and_filename = driver_path / "sf2driver11_05.prg";
-			const bool driver_loaded = sf2.LoadFile(driver_path_and_filename.string());
-			if (!driver_loaded)
-				return out << "\nFailed to load driver: " << driver_path_and_filename.string(),
-					   false;
-			else
-			{ // I suppose the testing was already done, so tryUnpack succeeded before.
-			  // Show a dialog, to test the flow!
-				out << "\n… unpacking to 'editor_layout'";
-				m_file = tryUnpack(m_Data, m_DataSize);
-				out << "\n… counting songs";
-				/* How can we tell if a song contains a song?
-					→	track 1 needs an end-marker at a position further down than #2
-						else, the song should be regarded as a scratch space
-				*/
-				int songs {};
-				for (int i = 0; i < 4; i++)
-				{
-					const auto ta = m_file->GetWord(0x4040 + 8 * i);
-					for (int j = 0; j < 256; j++)
-						if (m_file->GetByte(ta + j) >= 0xfe)
-						{
-							if (j >= 2)
-								++songs;
-							break;
-						}
-				}
-				out << "… found " << songs << " songs.";
-				if (songs > 1)
-				{
-					out << "Please type the number [1…4] of the song you'd like to import.";
-				}
-				else
-					m_song = 0;
-			}
+			// const path driver_path = m_Platform->Storage_GetDriversHomePath();
+			// const path driver_path_and_filename = driver_path / "sf2driver11_05.prg";
+			// const bool driver_loaded = sf2.LoadFile(driver_path_and_filename.string());
+			// if (!driver_loaded)
+			// 	return out << "\nFailed to load driver: " << driver_path_and_filename.string(),
+			// 		   false;
+			// else
+			// { // I suppose the testing was already done, so tryUnpack succeeded before.
+			// 	// Show a dialog, to test the flow!
+			// 	m_ComponentsManager->StartDialog(std::make_shared<DialogMessage>("ATMDS Converter", "You will now be converting this file from ATMDS 3.2", 80, true, [&]()
+			// 		{
+			// 			out << "\n… unpacking to 'editor_layout'";
+			// 			m_file = tryUnpack(m_Data, m_DataSize);
+			// 			out << "\n… counting songs";
+			// 			/* How can we tell if a song contains a song?
+			// 				→	track 1 needs an end-marker at a position further down than #2
+			// 					else, the song should be regarded as a scratch space
+			// 			*/
+			// 			int songs {};
+			// 			for (int i = 0; i < 4; i++)
+			// 			{
+			// 				const auto ta = m_file->GetWord(0x4040 + 8 * i);
+			// 				for (int j = 0; j < 256; j++)
+			// 					if (m_file->GetByte(ta + j) >= 0xfe)
+			// 					{
+			// 						if (j >= 2)
+			// 							++songs;
+			// 						break;
+			// 					}
+			// 			}
+			// 			out << "… found " << songs << " songs.";
+			// 			if (songs > 1)
+			// 			{
+			// 				out << "Please type the number [1…4] of the song you'd like to import.";
+			// 			} else m_song=0; }));
+			// }
 			return true;
 		}
 		else if (GetState() == State::Convert && m_song > -1 && m_file->IsValid())
@@ -126,9 +126,6 @@ namespace Editor
 
 	void ConverterATMDS::Setup()
 	{
-		const auto& dimensions = m_TextField->GetDimensions();
-		m_Console = std::make_shared<ComponentConsole>(0, 0, nullptr, m_TextField, 1, 2, dimensions.m_Width - 2, dimensions.m_Height - 5);
-		m_ComponentsManager->AddComponent(m_Console);
 	}
 
 
@@ -200,4 +197,5 @@ namespace Editor
 		bool trk3_ok = file->GetWord(0x4044) == 0x4a00;
 		return inside && trk1_ok && trk2_ok && trk3_ok;
 	}
+
 }

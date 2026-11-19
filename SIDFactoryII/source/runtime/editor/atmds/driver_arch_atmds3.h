@@ -1,6 +1,6 @@
 #pragma once
 
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "idriver_architecture.h"
 
 namespace Editor
 {
@@ -10,13 +10,6 @@ namespace Editor
 		void SetEmptySequence(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) override;
 		void SetEmptyOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) override;
 		void PostInitSetPlaybackIndices(std::vector<PlayMarkerInfo>& inPlayMarkerInfoList, Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo) override;
-
-		DataSourceOrderList::PackResult PackOrderList(const DataSourceOrderList& inData, unsigned char* m_internalBuffer) override;
-		DataSourceOrderList::PackedDataEventPosition GetOrderListIndex(const DataSourceOrderList& inData, int inIndex) const override;
-		bool UnpackOrderList(DataSourceOrderList& outData) const override;
-		DataSourceSequence::PackResult PackSequence(const DataSourceSequence& inData) override;
-		DataSourceSequence::PackedDataEventPosition GetSequenceIndex(const DataSourceSequence& inData, int inIndex) const override;
-		bool UnpackSequence(DataSourceSequence& outData) const override;
 
 		static unsigned char GetDescriptorType()
 		{
