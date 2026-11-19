@@ -1,7 +1,8 @@
 #include "runtime/editor/driver/driver_info.h"
-#include "runtime/editor/driver/idriver_architecture.h"
-#include "runtime/editor/driver/driver_architecture_sidfactory2.h"
+#include "runtime/editor/atmds/driver_arch_atmds3.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
+#include "runtime/editor/driver/driver_architecture_sidfactory2.h"
+#include "runtime/editor/driver/idriver_architecture.h"
 
 #include "runtime/emulation/cpumemory.h"
 
@@ -25,7 +26,6 @@ namespace Editor
 
 	DriverInfo::~DriverInfo()
 	{
-
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -160,13 +160,13 @@ namespace Editor
 			return false;
 		if (!HasParsedHeaderBlock(HeaderBlockID::ID_MusicData))
 			return false;
-		//if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableColorRules))
+		// if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableColorRules))
 		//	return false;
-		//if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableInsertDeleteRules))
+		// if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableInsertDeleteRules))
 		//	return false;
-		//if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableActionRules))
+		// if (!HasParsedHeaderBlock(HeaderBlockID::ID_TableActionRules))
 		//	return false;
-		//if (!HasParsedHeaderBlock(HeaderBlockID::ID_DriverInstrumentDataDescriptor))
+		// if (!HasParsedHeaderBlock(HeaderBlockID::ID_DriverInstrumentDataDescriptor))
 		//	return false;
 
 		return true;
@@ -233,7 +233,7 @@ namespace Editor
 	bool DriverInfo::ParseHeader(const Utility::C64File& inFile)
 	{
 		unsigned short block_address = m_TopAddress + 2;
-		
+
 		while (true)
 		{
 			Utility::C64FileReader reader(inFile, block_address, inFile.GetTopAddress() + static_cast<unsigned short>(inFile.GetDataSize()));
@@ -295,7 +295,7 @@ namespace Editor
 
 	void DriverInfo::ParseDescriptor(Utility::C64FileReader& inReader)
 	{
-		m_Descriptor.m_DriverType = inReader.ReadByte();	
+		m_Descriptor.m_DriverType = inReader.ReadByte();
 		m_Descriptor.m_DriverSize = inReader.ReadWord();
 		m_Descriptor.m_DriverName = inReader.ReadNullTerminatedString();
 		m_Descriptor.m_DriverCodeTop = inReader.ReadWord();
@@ -312,7 +312,8 @@ namespace Editor
 		{
 			if (driver_type == DriverArchitectureSidFactory2::GetDescriptorType())
 				return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureSidFactory2());
-
+			if (driver_type == DriverArchitectureATMDS3::GetDescriptorType())
+				return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureATMDS3());
 			return std::unique_ptr<IDriverArchitecture>();
 		}();
 	}

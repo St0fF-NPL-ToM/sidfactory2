@@ -48,7 +48,7 @@ set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evalu
 Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
 
 # temporary option
-option( SF2_MAKEFILE_APPROACH "Use the same approach for building with CMake like the original SF2 Makefile." on )
+option( SF2_MAKEFILE_APPROACH "Use the same approach for building with CMake like the original SF2 Makefile." off )
 
 #[[ Preparation for installation differences:
     -----------------------------------------

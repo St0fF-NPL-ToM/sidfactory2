@@ -143,10 +143,7 @@ namespace Editor
 		inCPUMemory->SetData(0x4000 - 10 * 128, m_CreatedCommands.data(), m_CreatedCommands.size() * sizeof(ATMDS_cmd));
 	}
 
-	DataSourceOrderList::PackResult DriverArchitectureATMDS3::PackOrderList(const DataSourceOrderList& inData, unsigned char* m_InternalBuffer) const
-	{
-		return {};
-	}
+	DataSourceOrderList::PackResult DriverArchitectureATMDS3::PackOrderList(const DataSourceOrderList& inData, unsigned char* m_InternalBuffer) const { return {}; }
 
 	DataSourceOrderList::PackedDataEventPosition DriverArchitectureATMDS3::GetOrderListIndex(int inIndex, const unsigned char* m_Data, const int m_PackedSize) const
 	{
@@ -332,7 +329,12 @@ namespace Editor
 				}
 				if (cc.m_uses) // anything used?
 					// find command in command list, set respective id
-					r.m_LastCommandSet = outData[event_index].m_Command = std::find(m_CreatedCommands.begin(), m_CreatedCommands.end(), cc) - m_CreatedCommands.begin();
+					r.m_LastCommandSet = outData[event_index].m_Command = std::find_if(m_CreatedCommands.begin(), m_CreatedCommands.end(), [&cc](const ATMDS_cmd& c)
+																			  {
+																											if ( cc.m_uses == c.m_uses ) {
+																												return memcmp(&cc, &c, sizeof(ATMDS_cmd) ) == 0;
+																											} else return false; })
+						- m_CreatedCommands.begin();
 				else
 					outData[event_index].m_Command = 0x80;
 				// reset internal command, fill up till next event
