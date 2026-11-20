@@ -22,10 +22,10 @@ namespace Editor
 
 	class DriverInfo final
 	{
+	public:
 		static const unsigned short ExpectedFileIDNumber = 0x1337;
 		static const unsigned short AuxilaryDataPointerAddress = 0x0ffb;
 
-	public:
 		enum TableType : unsigned char
 		{
 			Generic = 0x00,
@@ -142,7 +142,7 @@ namespace Editor
 			std::string m_Name;							// The readable name of the table
 
 			DataLayout m_DataLayout;					// Data layout in the emulated memory
-			
+
 			bool m_PropertyEnabledInsertDelete;			// Support of insert and delete editing
 			bool m_PropertyLayoutVertically;			// Layout vertically relative to last table added
 			bool m_PropertyIndexAsContinuousMemory;		// Index the table as if it were continuous memory

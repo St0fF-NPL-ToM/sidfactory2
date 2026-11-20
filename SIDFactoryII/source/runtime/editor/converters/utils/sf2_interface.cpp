@@ -103,9 +103,14 @@ namespace SF2
 					m_DriverInfo = driver_info;
 					m_DriverInfo->GetAuxilaryDataCollection().Reset();
 
+					// Guys, this is weird shit! In DriverInfo you define it fixed as $0ffb, now you calculate the address
+					// from something perfectly unrelated, coming from a "playerinit = $1000"-assumption.
+#if USE_MULTIPLE_SOURCES_OF_TRUTH
 					const unsigned short auxilary_data_vector = m_DriverInfo->GetDriverCommon().m_InitAddress - 5;
 					const unsigned short auxilary_data_address = c64_file->GetWord(auxilary_data_vector);
-
+#else // Solution: made that first source THE TRUTH by making it public
+					const unsigned short auxilary_data_address = c64_file->GetWord(driver_info->AuxilaryDataPointerAddress);
+#endif
 					if (auxilary_data_address != 0)
 					{
 						Utility::C64FileReader reader = Utility::C64FileReader(*c64_file, auxilary_data_address);
@@ -287,7 +292,7 @@ namespace SF2
 				Cmd_Demo_Flag
 			};
 			m_CommandFormat = { /* Byte position */ 0, /* Byte mask */ 0xff };
-			
+
 			for (int table_type = 0; table_type < TableType::_MAX; table_type++)
 				switch (table_type)
 				{
@@ -849,15 +854,15 @@ namespace SF2
 
 	/**
 	 * Set the SID model to 6581 or 8580.
-	 * 
+	 *
 	 * @origin	runtime/editor/screens/screen_edit.cpp
 	 */
 	void Interface::SetSIDModel(int inSidModel)
 	{
 		auto& hardware_preferences = m_DriverInfo->GetAuxilaryDataCollection().GetHardwarePreferences();
 		hardware_preferences.SetSIDModel(inSidModel == 6581
-			? AuxilaryDataHardwarePreferences::SIDModel::MOS6581
-			: AuxilaryDataHardwarePreferences::SIDModel::MOS8580);
+				? AuxilaryDataHardwarePreferences::SIDModel::MOS6581
+				: AuxilaryDataHardwarePreferences::SIDModel::MOS8580);
 	}
 
 	/**

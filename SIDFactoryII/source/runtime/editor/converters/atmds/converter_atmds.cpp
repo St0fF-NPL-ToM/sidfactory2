@@ -77,7 +77,7 @@ namespace Editor
 			m_State = State::Convert;
 
 			const path driver_path = m_Platform->Storage_GetDriversHomePath();
-			const path driver_path_and_filename = driver_path / "atmds-3.2.25.prg";
+			const path driver_path_and_filename = driver_path / "AcidTracker 3.2-26.prg";
 			auto& out = (sf2.GetCout() << "\nATMDS-CONVERT:\n\n- load default driver: " << driver_path_and_filename.string());
 			const bool driver_loaded = sf2.LoadFile(driver_path_and_filename.string());
 			if (!driver_loaded)
@@ -107,11 +107,12 @@ namespace Editor
 				out << " ... found " << songs << " songs.";
 				if (songs > 1)
 				{
+					auto dlg = std::make_shared<DialogMessage>(
+						"ATMDS Converter - which tune?", "Please select tune(s) to import.", 80, true, [&]()
+						{ return (m_song > -1); });
+
 					// Show a dialog, to test the flow!
-					m_ComponentsManager->StartDialog(
-						std::make_shared<DialogMessage>(
-							"ATMDS Converter - which tune?", "Please type the tune number [1...4] to import.", 80, true, [&]()
-							{ return (m_song > -1); }));
+					m_ComponentsManager->StartDialog(dlg);
 				}
 				else
 					m_song = 0;
