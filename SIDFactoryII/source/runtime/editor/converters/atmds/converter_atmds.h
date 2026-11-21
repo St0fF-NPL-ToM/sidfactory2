@@ -1,7 +1,15 @@
+/**
+ *	ATMDS 3.2 "Converter" - IT IS NOT A CONVERTER
+ *
+ *	This "converter" is made to marry ATMDS 3.2 data files with the ATMDS 3.2 driver.
+ */
 #pragma once
 
 #include "runtime/editor/components/component_console.h"
 #include "runtime/editor/converters/converterbase.h"
+#include "runtime/editor/converters/utils/sf2_interface.h"
+
+#include <set>
 
 namespace Editor
 {
@@ -18,11 +26,10 @@ namespace Editor
 
 	private:
 		void Setup() override;
+
 		std::shared_ptr<Utility::C64File> tryUnpack(const void* inData, unsigned int inDataSize) const;
 		bool maybeEditorLayout(std::shared_ptr<Utility::C64File>) const;
 
-		std::shared_ptr<Utility::C64File> m_file;
-		int m_song { -1 };
 		// Console
 		std::shared_ptr<ComponentConsole> m_Console;
 	};

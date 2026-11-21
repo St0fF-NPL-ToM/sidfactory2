@@ -25,11 +25,12 @@
 #include "foundation/graphics/textfield.h"
 #include "foundation/platform/iplatform.h"
 #include "runtime/editor/components_manager.h"
-#include "runtime/editor/converters/utils/sf2_interface.h"
 #include "runtime/editor/dialog/dialog_message.h"
+#include "runtime/emulation/cpumemory.h"
 #include "utils/c64file.h"
 
 #include "libraries/ghc/fs_std.h"
+#include "utils/utilities.h"
 
 using namespace fs;
 
@@ -43,7 +44,7 @@ namespace Editor
 	{
 	}
 
-	const std::string ConverterATMDS::GetName() const { return "ATMDS converter"; }
+	const std::string ConverterATMDS::GetName() const { return "ATMDS-3.2'26 converter"; }
 
 	bool ConverterATMDS::CanConvert(const void* inData, unsigned int inDataSize) const
 	{
@@ -63,68 +64,70 @@ namespace Editor
 
 	bool ConverterATMDS::ConsumeKeyEvent(SDL_Keycode inKeyEvent, unsigned int inModifiers)
 	{
-		if (inKeyEvent >= SDLK_1 && inKeyEvent <= SDLK_4)
-			return (m_song = inKeyEvent - SDLK_1), true;
 		return false;
 	}
 
 
 	bool ConverterATMDS::Update()
 	{
+		bool result { false };
+
 		if (GetState() == State::Initialized)
 		{
-			SF2::Interface sf2(m_Platform, *m_Console);
+			ConsoleOStreamBuffer outstream(&(*m_Console));
+			std::ostream cout(&outstream);
 			m_State = State::Convert;
 
+			// Begin the "conversion" by preparing the driver
 			const path driver_path = m_Platform->Storage_GetDriversHomePath();
 			const path driver_path_and_filename = driver_path / "AcidTracker 3.2-26.prg";
-			auto& out = (sf2.GetCout() << "\nATMDS-CONVERT:\n\n- load default driver: " << driver_path_and_filename.string());
-			const bool driver_loaded = sf2.LoadFile(driver_path_and_filename.string());
-			if (!driver_loaded)
-				return out << "\n... failed to load driver ...",
-					   false;
-			else
-			{ // I suppose the testing was already done, so tryUnpack succeeded before.
-				out << "\n- unpacking to 'editor_layout'";
-				m_file = tryUnpack(m_Data, m_DataSize);
-				out << "\n- counting songs";
-				/* How can we tell if a song contains a song?
-					→	track 1 needs an end-marker at a position further down than #2
-						else, the song should be regarded as a scratch space
-				*/
-				int songs {};
-				for (int i = 0; i < 4; i++)
-				{
-					const auto ta = m_file->GetWord(0x4040 + 8 * i);
-					for (int j = 0; j < 256; j++)
-						if (m_file->GetByte(ta + j) >= 0xfe)
-						{
-							if (j >= 2)
-								++songs;
-							break;
-						}
-				}
-				out << " ... found " << songs << " songs.";
-				if (songs > 1)
-				{
-					auto dlg = std::make_shared<DialogMessage>(
-						"ATMDS Converter - which tune?", "Please select tune(s) to import.", 80, true, [&]()
-						{ return (m_song > -1); });
+			cout << "\nATMDS-3.2-CONVERT:\n\n- load default driver: " << driver_path_and_filename.string();
 
-					// Show a dialog, to test the flow!
-					m_ComponentsManager->StartDialog(dlg);
-				}
-				else
-					m_song = 0;
+			void* data = nullptr;
+			long data_size = 0;
+			if (Utility::ReadFile(driver_path_and_filename.string(), 65536, &data, data_size) && data_size > 2)
+			{
+				// Expected situation:
+				//	- we have 2 files: the driver in "data" and the music file in "m_data"
+				//  - tryUnpack already succeeded, as well as MaybeEditorLayout
+				//
+				//	Thus, the simpe solution is to create memory space, insert all data accordingly
+				//	and finally using the utilities to produce the required result.
+				uint8_t c64[0x10000] {};
+
+				// produce readable constants
+				const uint8_t* drv_prg = reinterpret_cast<uint8_t*>(data) + 2;
+				const uint16_t drv_start = Utility::C64File::ReadTargetAddressFromData(data, data_size);
+				const uint16_t drv_size = data_size - 2;
+				const uint16_t drv_end = drv_start + drv_size;
+
+				// insert driver
+				memcpy(c64 + drv_start, drv_prg, drv_size);
+				cout << "\n- inserted driver into memory-region: " << std::hex << drv_start << "-" << drv_end << std::dec;
+
+				// tryUnpack already succeeded, so further testing can be kept minimal
+				cout << "\n- unpacking input file to 'editor_layout'";
+				auto file = tryUnpack(m_Data, m_DataSize);
+				// insert data
+				memcpy(c64 + file->GetTopAddress(), file->GetData(), file->GetDataSize());
+				cout << " ... and inserted memory-region: " << file->GetTopAddress() << "-" << file->GetBottomAddress();
+
+				// determine "real" end of file
+				const uint16_t end = std::max(drv_end, file->GetBottomAddress());
+
+				// set up result
+				m_Result = Utility::C64File::CreateFromData(drv_start, c64 + drv_start, end - drv_start);
+
+				cout << "\n- combined driver+data: " << m_Result->GetTopAddress() << "-" << m_Result->GetBottomAddress();
+				m_State = State::Completed;
+				result = true;
 			}
-			return true;
+			else
+				cout << "\n! FAILURE TO READ THE DRIVER FILE!\n";
+			if (data)
+				delete[] static_cast<char*>(data); // clean up asap
 		}
-		else if (GetState() == State::Convert && m_song > -1 && m_file->IsValid())
-		{
-			return true;
-		}
-		else
-			return false;
+		return result;
 	}
 
 
