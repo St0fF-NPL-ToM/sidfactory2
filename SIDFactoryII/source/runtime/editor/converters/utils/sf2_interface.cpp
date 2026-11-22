@@ -28,13 +28,13 @@ using namespace Emulation;
 using namespace Editor;
 
 // @todo This is temporary; see GetTableData() below.
-#define TABLENAME_WAVE		"Wave"
-#define TABLENAME_PULSE		"Pulse"
-#define TABLENAME_FILTER	"Filter"
-#define TABLENAME_HR		"HR"
-#define TABLENAME_ARPEGGIO	"Arp"
-#define TABLENAME_TEMPO		"Tempo"
-#define TABLENAME_INIT		"Init"
+#define TABLENAME_WAVE "Wave"
+#define TABLENAME_PULSE "Pulse"
+#define TABLENAME_FILTER "Filter"
+#define TABLENAME_HR "HR"
+#define TABLENAME_ARPEGGIO "Arp"
+#define TABLENAME_TEMPO "Tempo"
+#define TABLENAME_INIT "Init"
 
 namespace SF2
 {
@@ -50,20 +50,20 @@ namespace SF2
 
 		m_DriverInfo = std::make_shared<DriverInfo>();
 
-		m_CommandName[Cmd_Slide]		= "Slide";
-		m_CommandName[Cmd_Vibrato]		= "Vibrato";
-		m_CommandName[Cmd_Portamento]	= "Portamento";
-		m_CommandName[Cmd_Arpeggio]		= "Arpeggio/Chord";
-		m_CommandName[Cmd_Fret]			= "Fret";
-		m_CommandName[Cmd_ADSR_Note]	= "ADSR (Note)";
-		m_CommandName[Cmd_ADSR_Persist]	= "ADSR (Persistent)";
-		m_CommandName[Cmd_Index_Filter]	= "Filter Index";
-		m_CommandName[Cmd_Index_Wave]	= "Wave Index";
-		m_CommandName[Cmd_Demo_Flag]	= "Demo Flag";
+		m_CommandName[Cmd_Slide] = "Slide";
+		m_CommandName[Cmd_Vibrato] = "Vibrato";
+		m_CommandName[Cmd_Portamento] = "Portamento";
+		m_CommandName[Cmd_Arpeggio] = "Arpeggio/Chord";
+		m_CommandName[Cmd_Fret] = "Fret";
+		m_CommandName[Cmd_ADSR_Note] = "ADSR (Note)";
+		m_CommandName[Cmd_ADSR_Persist] = "ADSR (Persistent)";
+		m_CommandName[Cmd_Index_Filter] = "Filter Index";
+		m_CommandName[Cmd_Index_Wave] = "Wave Index";
+		m_CommandName[Cmd_Demo_Flag] = "Demo Flag";
 
-		m_CommandName[Cmd_Index_Pulse]	= "Pulse Index";
-		m_CommandName[Cmd_Tempo]		= "Tempo";
-		m_CommandName[Cmd_Volume]		= "Main Volume";
+		m_CommandName[Cmd_Index_Pulse] = "Pulse Index";
+		m_CommandName[Cmd_Tempo] = "Tempo";
+		m_CommandName[Cmd_Volume] = "Main Volume";
 	}
 
 	Interface::~Interface()
@@ -88,50 +88,46 @@ namespace SF2
 	{
 		void* data = nullptr;
 		long data_size = 0;
+		if (Utility::ReadFile(inPathAndFilename, 65536, &data, data_size) && data_size > 2)
+			LoadDriver(Utility::C64File::CreateFromPRGData(data, (unsigned)data_size));
+		delete[] static_cast<char*>(data);
+		return (m_DriverInfo && m_DriverInfo->IsValid());
+	}
 
+	bool Interface::LoadDriver(std::shared_ptr<Utility::C64File> c64_file)
+	{
 		std::shared_ptr<DriverInfo> driver_info = std::make_shared<DriverInfo>();
 
-		if (Utility::ReadFile(inPathAndFilename, 65536, &data, data_size))
+		driver_info->Parse(*c64_file);
+		if (driver_info->IsValid())
 		{
-			if (data_size > 2)
-			{
-				std::shared_ptr<Utility::C64File> c64_file = Utility::C64File::CreateFromPRGData(data, data_size);
-				driver_info->Parse(*c64_file);
+			m_DriverInfo = driver_info;
+			m_DriverInfo->GetAuxilaryDataCollection().Reset();
 
-				if (driver_info->IsValid())
-				{
-					m_DriverInfo = driver_info;
-					m_DriverInfo->GetAuxilaryDataCollection().Reset();
-
-					// Guys, this is weird shit! In DriverInfo you define it fixed as $0ffb, now you calculate the address
-					// from something perfectly unrelated, coming from a "playerinit = $1000"-assumption.
+			// Guys, this is weird shit! In DriverInfo you define it fixed as $0ffb, now you calculate the address
+			// from something perfectly unrelated, coming from a "playerinit = $1000"-assumption.
 #if USE_MULTIPLE_SOURCES_OF_TRUTH
-					const unsigned short auxilary_data_vector = m_DriverInfo->GetDriverCommon().m_InitAddress - 5;
-					const unsigned short auxilary_data_address = c64_file->GetWord(auxilary_data_vector);
+			const unsigned short auxilary_data_vector = m_DriverInfo->GetDriverCommon().m_InitAddress - 5;
+			const unsigned short auxilary_data_address = c64_file->GetWord(auxilary_data_vector);
 #else // Solution: made that first source THE TRUTH by making it public
-					const unsigned short auxilary_data_address = c64_file->GetWord(driver_info->AuxilaryDataPointerAddress);
+			const unsigned short auxilary_data_address = c64_file->GetWord(driver_info->AuxilaryDataPointerAddress);
 #endif
-					if (auxilary_data_address != 0)
-					{
-						Utility::C64FileReader reader = Utility::C64FileReader(*c64_file, auxilary_data_address);
-						m_DriverInfo->GetAuxilaryDataCollection().Load(reader);
-					}
-
-					ParseDriverDetails();
-
-					// Copy the data to the emulated memory
-					m_CPUMemory->Lock();
-					m_CPUMemory->Clear();
-					m_CPUMemory->SetData(c64_file->GetTopAddress(), c64_file->GetData(), c64_file->GetDataSize());
-					m_CPUMemory->Unlock();
-
-					InitData();
-				}
+			if (auxilary_data_address != 0)
+			{
+				Utility::C64FileReader reader = Utility::C64FileReader(*c64_file, auxilary_data_address);
+				m_DriverInfo->GetAuxilaryDataCollection().Load(reader);
 			}
 
-			delete[] static_cast<char*>(data);
-		}
+			ParseDriverDetails();
 
+			// Copy the data to the emulated memory
+			m_CPUMemory->Lock();
+			m_CPUMemory->Clear();
+			m_CPUMemory->SetData(c64_file->GetTopAddress(), c64_file->GetData(), c64_file->GetDataSize());
+			m_CPUMemory->Unlock();
+
+			InitData();
+		}
 		return driver_info->IsValid();
 	}
 
@@ -364,7 +360,8 @@ namespace SF2
 		if (inCoutOnWarning && !command_supported)
 		{
 			for (unsigned char checked_command : m_CommandChecked)
-				if (inCommand == checked_command) return false;
+				if (inCommand == checked_command)
+					return false;
 			GetCout() << "WARNING: This driver does not have a \"" << m_CommandName[command] << "\" command." << std::endl;
 			m_CommandChecked.push_back(inCommand);
 		}
@@ -398,7 +395,8 @@ namespace SF2
 
 		std::shared_ptr<DataSourceOrderList>& orderlist_track = m_OrderListDataSources[inTrack];
 
-		for (unsigned int i = 0; i < orderlist_track->GetLength(); i++) {
+		for (unsigned int i = 0; i < orderlist_track->GetLength(); i++)
+		{
 			const DataSourceOrderList::Entry orderlist_entry = (*orderlist_track)[i];
 			order_list.push_back(orderlist_entry.m_Transposition);
 			order_list.push_back(orderlist_entry.m_SequenceIndex);
@@ -452,8 +450,14 @@ namespace SF2
 	{
 		FOUNDATION_ASSERT(inBytes.size() == 3);
 
+		auto entry = reinterpret_cast<type>()
 		unsigned char instrument = inBytes[0], command = inBytes[1], note = inBytes[2];
 
+		auto *drv = m_DriverInfo->GetDriverArchitecture();
+		if ( drv->CheckValidSequenceEntry( entry ) )
+		{
+
+		}
 		FOUNDATION_ASSERT(instrument < 0x20 || instrument == 0x80 || instrument == 0x90);
 		FOUNDATION_ASSERT(command < 0x40 || command == 0x80);
 		FOUNDATION_ASSERT(note < 0x70 || note == 0x7e);
@@ -463,7 +467,8 @@ namespace SF2
 
 		const unsigned int sequence_length = sequence_source->GetLength();
 
-		if (sequence_length < DataSourceSequence::MaxEventCount) {
+		if (sequence_length < DataSourceSequence::MaxEventCount)
+		{
 			sequence_source->SetLength(sequence_length + 1);
 
 			(*sequence_source)[sequence_length] = sequence_event;
@@ -484,7 +489,8 @@ namespace SF2
 	 */
 	bool Interface::PushAllDataToMemory(bool inFixRelativeMarkers)
 	{
-		for (int i = 0; i < m_DriverDetails.m_TrackCount; i++) {
+		for (int i = 0; i < m_DriverDetails.m_TrackCount; i++)
+		{
 
 			// Order lists
 			std::shared_ptr<DataSourceOrderList>& orderlist_track = m_OrderListDataSources[i];
@@ -506,7 +512,8 @@ namespace SF2
 
 		bool length_modified;
 
-		for (int i = 0; i < m_DriverDetails.m_SequenceCount; i++) {
+		for (int i = 0; i < m_DriverDetails.m_SequenceCount; i++)
+		{
 			const std::shared_ptr<DataSourceSequence>& sequence_source = m_SequenceDataSources[i];
 
 			// Set all untouched sequence sizes at 0 back to 1 for the packer (and editor) to work
@@ -610,7 +617,8 @@ namespace SF2
 
 		std::shared_ptr<DataSourceSequence>& sequence_source = m_SequenceDataSources[inSequenceIndex];
 
-		for (unsigned int i = 0; i < sequence_source->GetLength(); i++) {
+		for (unsigned int i = 0; i < sequence_source->GetLength(); i++)
+		{
 			const DataSourceSequence::Event sequence_event = (*sequence_source)[i];
 			sequence.push_back(sequence_event.m_Instrument);
 			sequence.push_back(sequence_event.m_Command);
@@ -633,15 +641,7 @@ namespace SF2
 		for (const auto& table_definition : table_definitions)
 		{
 			// @todo Replace defines with additional table types when added by Laxity later
-			if ((inTableType == TableType::Instruments	&& table_definition.m_Type == DriverInfo::TableType::Instruments) ||
-				(inTableType == TableType::Commands		&& table_definition.m_Type == DriverInfo::TableType::Commands) ||
-				(inTableType == TableType::Wave			&& table_definition.m_Name == TABLENAME_WAVE) ||
-				(inTableType == TableType::Pulse		&& table_definition.m_Name == TABLENAME_PULSE) ||
-				(inTableType == TableType::Filter		&& table_definition.m_Name == TABLENAME_FILTER) ||
-				(inTableType == TableType::HR			&& table_definition.m_Name == TABLENAME_HR) ||
-				(inTableType == TableType::Arpeggio		&& table_definition.m_Name == TABLENAME_ARPEGGIO) ||
-				(inTableType == TableType::Tempo		&& table_definition.m_Name == TABLENAME_TEMPO) ||
-				(inTableType == TableType::Init			&& table_definition.m_Name == TABLENAME_INIT))
+			if ((inTableType == TableType::Instruments && table_definition.m_Type == DriverInfo::TableType::Instruments) || (inTableType == TableType::Commands && table_definition.m_Type == DriverInfo::TableType::Commands) || (inTableType == TableType::Wave && table_definition.m_Name == TABLENAME_WAVE) || (inTableType == TableType::Pulse && table_definition.m_Name == TABLENAME_PULSE) || (inTableType == TableType::Filter && table_definition.m_Name == TABLENAME_FILTER) || (inTableType == TableType::HR && table_definition.m_Name == TABLENAME_HR) || (inTableType == TableType::Arpeggio && table_definition.m_Name == TABLENAME_ARPEGGIO) || (inTableType == TableType::Tempo && table_definition.m_Name == TABLENAME_TEMPO) || (inTableType == TableType::Init && table_definition.m_Name == TABLENAME_INIT))
 			{
 				table_data.m_DataSourceTable = DriverUtils::CreateTableDataSource(table_definition, m_CPUMemory);
 				table_data.m_TableDefinition = table_definition;
@@ -684,7 +684,8 @@ namespace SF2
 
 		for (int i = (max_rows * max_cols) - 1, row = max_rows; row > 0; row--)
 			for (int col = 0; col < max_cols; col++, i--)
-				if ((*inDataSourceTable)[i] != 0) return row;
+				if ((*inDataSourceTable)[i] != 0)
+					return row;
 
 		return 0; // Empty table
 	}
@@ -715,7 +716,8 @@ namespace SF2
 					break;
 				}
 			}
-			if (!different) return row; // Identical row data found
+			if (!different)
+				return row; // Identical row data found
 		}
 
 		if (table.m_RowCount > table_data.m_TableDefinition.m_RowCount - 1)
@@ -761,9 +763,11 @@ namespace SF2
 						break;
 					}
 				}
-				if (different) break;
+				if (different)
+					break;
 			}
-			if (!different) return row / table.m_ColumnCount;
+			if (!different)
+				return row / table.m_ColumnCount;
 		}
 
 		// The cluster of rows is new
@@ -782,13 +786,14 @@ namespace SF2
 	 */
 	bool Interface::EditTableRow(int inTableType, int inRow, std::vector<unsigned char> inBytes)
 	{
-		if(!IsTableSupported(inTableType, true))
+		if (!IsTableSupported(inTableType, true))
 			return false;
 
 		if (inTableType == TableType::Commands)
 		{
 			bool command_supported = IsCommandSupported(inBytes[m_CommandFormat.m_BytePosition], true); // Warning only
-			if (!command_supported) return false;
+			if (!command_supported)
+				return false;
 		}
 
 		TableData table_data = GetTableData(inTableType);
@@ -810,7 +815,7 @@ namespace SF2
 	 */
 	bool Interface::EditTableRowText(int inTableType, int inRow, const std::string& inText)
 	{
-		if(!IsTableSupported(inTableType, true))
+		if (!IsTableSupported(inTableType, true))
 			return false;
 
 		TableData table_data = GetTableData(inTableType);
@@ -823,8 +828,7 @@ namespace SF2
 		std::shared_ptr<DataSourceTableText> table_text = std::make_shared<DataSourceTableText>(
 			table_data.m_TableDefinition.m_ID,
 			table_data.m_TableDefinition.m_RowCount,
-			m_DriverInfo->GetAuxilaryDataCollection().GetTableText()
-		);
+			m_DriverInfo->GetAuxilaryDataCollection().GetTableText());
 
 		// SF2 actually allows the description to be much longer than what can be seen in the editor
 		(*table_text)[inRow] = inText;
@@ -891,5 +895,4 @@ namespace SF2
 
 		return { description.str(), table_data.m_TableDefinition.m_Address, GetAllMemory(), (unsigned int)table_data.m_DataSourceTable->GetSize() };
 	}
-
 }

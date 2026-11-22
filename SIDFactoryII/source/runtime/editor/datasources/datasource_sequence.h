@@ -3,6 +3,7 @@
 #include "datasource_emulation_memory.h"
 #include "idatasource.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace Emulation
@@ -19,6 +20,8 @@ namespace Editor
 	{
 	public:
 		static const unsigned int MaxEventCount;
+		static const uint8_t NoEvent = 0x00u;
+		static const uint8_t NoItem = 0x80u;
 
 		struct Event
 		{
@@ -35,9 +38,9 @@ namespace Editor
 
 			void Clear()
 			{
-				m_Instrument = 0x80;
-				m_Command = 0x80;
-				m_Note = 0x00;
+				m_Instrument = NoItem;
+				m_Command = NoItem;
+				m_Note = NoEvent;
 			}
 		};
 

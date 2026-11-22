@@ -1,3 +1,22 @@
+/**
+ *	SIDFactoryII driver architecture interface
+ *	==========================================
+ *	This is how a driver explains itself and makes it's C64 counterpart
+ *	generate music with a set of data.
+ *
+ *	It describes the translation layer between Editor Events and actual
+ *	driver data encoding and placement.
+ *
+ *	-	Initialize the architecture itself
+ *	-	Read (unpack) / Write (Pack) special data pakets:
+ *		-	OrderLists
+ *		-	Sequences
+ *	-	Query data structure:
+ *		-	Sequence / Order count
+ *		-	Sequence / Order termination
+ *		-
+ */
+
 #pragma once
 
 #include "runtime/editor/datasources/datasource_orderlist.h"
@@ -32,18 +51,5 @@ namespace Editor
 		virtual void SetEmptySequence(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) = 0;
 		virtual void SetEmptyOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) = 0;
 		virtual void PostInitSetPlaybackIndices(std::vector<PlayMarkerInfo>& inPlayMarkerInfoList, Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo) = 0;
-
-		/* 	Extensions by St0fF: while these functions remain the same between all SF2-drivers, they
-			do make up for the "real differences" between SF2 and other drivers.
-
-			Abstracting ANY tables "away" is only logical, as only track- and sequence-interpretation makes differences.
-			Specialized table visualizations would be a different topic, though.
-		*/
-		virtual DataSourceOrderList::PackResult PackOrderList(const DataSourceOrderList& inData, unsigned char* m_InternalBuffer) const = 0;
-		virtual DataSourceOrderList::PackedDataEventPosition GetOrderListIndex(int inIndex, const unsigned char* m_Data, const int m_PackedSize) const = 0;
-		virtual std::pair<int, int> UnpackOrderList(DataSourceOrderList& outData, unsigned char* m_Data) const = 0;
-		virtual DataSourceSequence::PackResult PackSequence(const DataSourceSequence& inData, unsigned char* m_InternalBuffer) const = 0;
-		virtual DataSourceSequence::PackedDataEventPosition GetSequenceIndex(int inEventPosition, const unsigned char* m_Data, const int m_PackedSize) const = 0;
-		virtual DataSourceSequence::UnpackResult UnpackSequence(DataSourceSequence& outData, unsigned char* m_Data) const = 0;
 	};
 }

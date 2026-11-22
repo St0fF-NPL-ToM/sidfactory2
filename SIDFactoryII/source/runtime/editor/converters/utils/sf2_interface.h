@@ -10,15 +10,15 @@
 #include <map>
 #include <ostream>
 
-#define TABLE_INSTR		SF2::Interface::TableType::Instruments
-#define TABLE_CMDS		SF2::Interface::TableType::Commands
-#define TABLE_WAVE		SF2::Interface::TableType::Wave
-#define TABLE_PULSE		SF2::Interface::TableType::Pulse
-#define TABLE_FILTER	SF2::Interface::TableType::Filter
-#define TABLE_HR		SF2::Interface::TableType::HR
-#define TABLE_ARP		SF2::Interface::TableType::Arpeggio
-#define TABLE_TEMPO		SF2::Interface::TableType::Tempo
-#define TABLE_INIT		SF2::Interface::TableType::Init
+#define TABLE_INSTR SF2::Interface::TableType::Instruments
+#define TABLE_CMDS SF2::Interface::TableType::Commands
+#define TABLE_WAVE SF2::Interface::TableType::Wave
+#define TABLE_PULSE SF2::Interface::TableType::Pulse
+#define TABLE_FILTER SF2::Interface::TableType::Filter
+#define TABLE_HR SF2::Interface::TableType::HR
+#define TABLE_ARP SF2::Interface::TableType::Arpeggio
+#define TABLE_TEMPO SF2::Interface::TableType::Tempo
+#define TABLE_INIT SF2::Interface::TableType::Init
 
 namespace Foundation
 {
@@ -62,7 +62,6 @@ namespace SF2
 		};
 
 	public:
-
 		enum TableType : int
 		{
 			Instruments,
@@ -79,24 +78,24 @@ namespace SF2
 
 		enum Command : unsigned char
 		{
-			Cmd_Slide			= 0x00,
-			Cmd_Vibrato			= 0x01,
-			Cmd_Portamento		= 0x02,
-			Cmd_Arpeggio		= 0x03,
-			Cmd_Fret			= 0x04,
-			Cmd_ADSR_Note		= 0x08,
-			Cmd_ADSR_Persist	= 0x09,
-			Cmd_Index_Filter	= 0x0a,
-			Cmd_Index_Wave		= 0x0b,
-			Cmd_Index_Pulse		= 0x0c, // Added in driver 11.02
-			Cmd_Tempo			= 0x0d,	// Added in driver 11.02
-			Cmd_Volume			= 0x0e, // Added in driver 11.02
-			Cmd_Demo_Flag		= 0x0f
+			Cmd_Slide = 0x00,
+			Cmd_Vibrato = 0x01,
+			Cmd_Portamento = 0x02,
+			Cmd_Arpeggio = 0x03,
+			Cmd_Fret = 0x04,
+			Cmd_ADSR_Note = 0x08,
+			Cmd_ADSR_Persist = 0x09,
+			Cmd_Index_Filter = 0x0a,
+			Cmd_Index_Wave = 0x0b,
+			Cmd_Index_Pulse = 0x0c, // Added in driver 11.02
+			Cmd_Tempo = 0x0d, // Added in driver 11.02
+			Cmd_Volume = 0x0e, // Added in driver 11.02
+			Cmd_Demo_Flag = 0x0f
 		};
 
 		struct WrapFormat
 		{
-			int m_ByteIDPosition;						// If -1 the table doesn't use a wrap marker
+			int m_ByteIDPosition; // If -1 the table doesn't use a wrap marker
 			unsigned char m_ByteIDMask;
 			std::vector<unsigned char> m_ByteID;
 			int m_ByteWrapPosition;
@@ -115,7 +114,7 @@ namespace SF2
 
 			/* Converter only */
 
-			int m_TableColCount[TableType::_MAX];		// If 0 the table is not defined for this driver
+			int m_TableColCount[TableType::_MAX]; // If 0 the table is not defined for this driver
 			int m_TableMaxRows[TableType::_MAX];
 			WrapFormat m_TableWrap[TableType::_MAX];
 		};
@@ -160,6 +159,7 @@ namespace SF2
 		std::ostream& GetCout();
 
 		bool LoadFile(const std::string& inFilename);
+		bool LoadDriver(std::shared_ptr<Utility::C64File> inFile);
 		std::shared_ptr<Utility::C64File> GetResult();
 
 		unsigned char* GetAllMemory() const;
@@ -190,8 +190,9 @@ namespace SF2
 		Block GetRangeSequence(unsigned int inSequenceIndex);
 		Block GetRangeTable(int inTableType);
 
-	private:
+		Emulation::CPUMemory* access() { return m_CPUMemory; }
 
+	private:
 		void InitData();
 		void ParseDriverDetails();
 		bool IsTableSupported(int inTableType, bool inCoutOnError = false);
