@@ -48,7 +48,7 @@ BreakBeforeInheritanceComma: true
 BreakInheritanceList: BeforeComma
 BreakConstructorInitializers: BeforeComma
 BreakStringLiterals: true
-ColumnLimit: 100
+ColumnLimit: 120
 CompactNamespaces: true
 ConstructorInitializerIndentWidth : 4
 Cpp11BracedListStyle: true

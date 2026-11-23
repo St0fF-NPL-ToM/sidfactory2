@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datasource_emulation_memory.h"
+#include "runtime/editor/interfaces/ievent_definition.h"
 #include "idatasource.h"
 
 #include <memory>
@@ -19,10 +20,10 @@ namespace Editor
 	public:
 		const int MaxEntryCount = 256;
 
-		struct Entry
+		struct Entry : public IEvent
 		{
-			unsigned char m_Transposition;
-			unsigned char m_SequenceIndex;
+			unsigned char &m_Transposition() { return m_Param;}
+			unsigned char &m_SequenceIndex() { return m_Payload;}
 		};
 
 		struct PackResult

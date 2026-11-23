@@ -103,11 +103,12 @@ set( HEADERS
     dialog/dialog_utilities.h
     dialog/dialog_usbsid_boards.h
 
+    driver/sf2_events.h
+    driver/sf2_streaming.h
     driver/driver_architecture_sidfactory2.h
     driver/driver_info.h
     driver/driver_state.h
     driver/driver_utils.h
-    driver/idriver_architecture.h
 
     instrument/instrumentdata_table.h
     instrument/instrumentdata_tablemapping.h
@@ -240,6 +241,7 @@ set( SOURCES
     dialog/dialog_usbsid_boards.cpp
 
     driver/driver_architecture_sidfactory2.cpp
+    driver/sf2_streaming.cpp
     driver/driver_info.cpp
     driver/driver_state.cpp
     driver/driver_utils.cpp
