@@ -171,4 +171,10 @@ namespace Editor
 
 	void DataSourceOrderList::Unpack()
 	{ m_Arch->UnpackOrderList( *this, m_Data ); }
+
+	bool DataSourceOrderList::IsEndIndex( int inIndex ) const
+	{
+		return ( m_Arch->m_OrderEvents.IsParamSentinel( SentinelType::Loop, m_Events[ inIndex ] )
+				 || m_Arch->m_OrderEvents.IsParamSentinel( SentinelType::Stop, m_Events[ inIndex ] ) );
+	};
 } // namespace Editor
