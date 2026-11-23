@@ -26,14 +26,10 @@
 #include <memory>
 
 #include "Dac.h"
-#include "Spline.h"
-
-//#include "sidcxx11.h"
+#include "Integrator.h"
 
 namespace reSIDfp
 {
-
-class Integrator;
 
 /**
  * Calculate parameters for 6581 filter emulation.

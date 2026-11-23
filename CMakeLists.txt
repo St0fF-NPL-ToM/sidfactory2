@@ -82,12 +82,13 @@ if ( LINUX )
         cmake_pkg_config( IMPORT sdl2-compat )  # fallback
     endif()
     cmake_pkg_config( IMPORT jack )
+    add_compile_definitions( JACK_HAS_PORT_RENAME ) # this is default nowadays ...
     cmake_pkg_config( IMPORT libusb-1.0 )
     get_directory_property( SF2_LIBS IMPORTED_TARGETS )
     list( FILTER SF2_LIBS EXCLUDE REGEX "Git.*" ) # Git was also imported, but not for linking!
     # libexec needs a subdirectory on linux (as we also install folders)
 	include( GNUInstallDirs )
-    string( APPEND CMAKE_INSTALL_LIBEXECDIR /sidfactory2 )
+    cmake_path( APPEND CMAKE_INSTALL_LIBEXECDIR ${PROJECT_NAME} )
     set( CACHE{SF2_EXEC_DIR} FORCE VALUE "${CMAKE_INSTALL_LIBEXECDIR}" )
     set( CACHE{SF2_DOC_DIR} FORCE VALUE "${CMAKE_INSTALL_DOCDIR}" )
 elseif( APPLE )
@@ -117,11 +118,18 @@ add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
 add_subdirectory( source )
 
 # Installation tasks from here:
+install( DIRECTORY  resources/color_schemes
+                    resources/drivers
+                    resources/music
+                    resources/overlay           DESTINATION "${SF2_EXEC_DIR}" )
+install( FILES      resources/config.ini        DESTINATION "${SF2_EXEC_DIR}/config/" )
+install( FILES      resources/COPYING           DESTINATION "${SF2_DOC_DIR}" )
+
 install( DIRECTORY dist/documentation    DESTINATION "${SF2_DOC_DIR}" )
-install( FILES README.md                 DESTINATION "${SF2_DOC_DIR}" )
+install( FILES resources/README.md       DESTINATION "${SF2_DOC_DIR}" )
 if ( LINUX )
     # Linux needs the icon and desktop entries in special XDG-DIRS
-    install( FILES macos/icon.svg        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${PROJECT_NAME}.svg )
+    install( FILES old_macos/icon.svg        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps/${PROJECT_NAME}.svg )
     install( FILES dist/com.github.sidfactory2.desktop
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications )
     install( FILES dist/com.github.sidfactory2.appstream.xml

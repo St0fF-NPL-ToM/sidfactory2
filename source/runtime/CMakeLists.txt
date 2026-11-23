@@ -39,7 +39,3 @@ set( OTHERS )
 target_sources( SIDFactoryII PRIVATE ${SOURCES} )
 target_sources( SIDFactoryII PRIVATE FILE_SET headers TYPE HEADERS FILES ${HEADERS} )
 target_sources( SIDFactoryII PRIVATE FILE_SET resources TYPE HEADERS FILES ${OTHERS} )
-
-emulation/asid
-emulation/sid
-emulation/usbsid

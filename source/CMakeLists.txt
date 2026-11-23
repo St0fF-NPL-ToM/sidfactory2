@@ -13,15 +13,17 @@
 ]]
 cmake_minimum_required( VERSION 4.2 )
 
-# first up: this is the master include folder
-target_include_directories( SIDFactoryII PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" )
-
 # these are libraries, they should be used as such to ease maintenance:
 #
 add_subdirectory( libraries/miniz )
 add_subdirectory( libraries/residfp )
 add_subdirectory( libraries/rtmidi )
 set( SF2_LIBS ${SF2_LIBS} miniz reSIDfp RtMidi PARENT_SCOPE )
+
+# first up: this is the master include folder
+Msg( "Creating basic target from main.cpp" )
+add_executable( SIDFactoryII ${TPROP} main.cpp )
+target_include_directories( SIDFactoryII PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 # this folder also is the main include_directory
 target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -138,3 +140,26 @@ set( SOURCES
 target_sources( SIDFactoryII PRIVATE ${SOURCES} )
 target_sources( SIDFactoryII PRIVATE FILE_SET headers TYPE HEADERS FILES ${HEADERS} )
 add_subdirectory( runtime )
+
+Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
+target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
+
+install( TARGETS SIDFactoryII DESTINATION "${SF2_EXEC_DIR}" )
+if( LINUX )
+    # Let's try a CMake-Link?
+    install( CODE "
+        file( MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR} )
+        # symlink from bin-dir to libexec-dir
+        file( CREATE_LINK
+            ${CMAKE_INSTALL_PREFIX}/${SF2_EXEC_DIR}/SIDFactoryII
+            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2
+            SYMBOLIC RESULT _r )
+        if ( _r )
+            message( WARNING \"Link-Update failed: ${_r}\" )
+        else()
+            message( STATUS \"Updated:    ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/sidfactory2\" )
+        endif()
+        unset( _r )
+    " )
+elseif( WIN32 )
+endif()

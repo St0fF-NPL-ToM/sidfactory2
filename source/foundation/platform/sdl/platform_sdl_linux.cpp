@@ -9,6 +9,7 @@
 #include <pwd.h>
 #include <system_error>
 #include <wordexp.h>
+#include <unistd.h>
 
 using namespace fs;
 
