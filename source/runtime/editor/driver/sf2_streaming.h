@@ -2,7 +2,7 @@
  *  SF2 pack/unpack byte streaming
  */
 
-#include "imemory_streaming.h"
+#include "runtime/editor/interfaces/imemory_streaming.h"
 
 namespace Editor
 {
@@ -14,8 +14,8 @@ namespace Editor
 		std::pair<int, int> UnpackOrderList(DataSourceOrderList& outData, unsigned char* m_Data) const override;
 
 		// Orderlist-Stream
-		bool IsOrderListEntrySequenceIndex(unsigned char inValue, unsigned char& outIndex) const override;
-		bool IsOrderListTerminator(unsigned char inValue, bool& outHasLoopIndex) const override;
+		// bool IsOrderListEntrySequenceIndex(unsigned char inValue, unsigned char& outIndex) const override;
+		// bool IsOrderListTerminator(unsigned char inValue, bool& outHasLoopIndex) const override;
 	};
 
 
@@ -27,8 +27,8 @@ namespace Editor
 		DataSourceSequence::UnpackResult UnpackSequence(DataSourceSequence& outData, unsigned char* m_Data) const override;
 
 		// Sequence-Stream
-		bool IsSequenceTerminator(unsigned char inValue) const override;
-		bool DecodeSequenceEventByte(unsigned char* inData, EventKind& outKind, unsigned char& outIndex) const override;
-		bool IsEmptySequence(const unsigned char* inData) const override;
+		// bool IsSequenceTerminator(unsigned char inValue) const override;
+		// bool DecodeSequenceEventByte(unsigned char* inData, EventKind& outKind, unsigned char& outIndex) const override;
+		// bool IsEmptySequence(const unsigned char* inData) const override;
 	};
 }

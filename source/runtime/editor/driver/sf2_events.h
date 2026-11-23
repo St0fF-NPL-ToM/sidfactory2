@@ -2,7 +2,7 @@
  *  SF2 Event redefinition
  */
 
-#include "ievent_definition.h"
+#include "runtime/editor/interfaces/ievent_definition.h"
 
 namespace Editor
 {
