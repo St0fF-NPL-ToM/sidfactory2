@@ -77,6 +77,8 @@ namespace Editor
 		PackedDataEventPosition GetIndexInPackedData( int inIndex ) const;
 
 		bool					IsEndIndex( int inIndex ) const;
+		bool					HasSequenceId( int inIndex ) const;
+		uint8_t					GetSequenceId( int inIndex ) const;
 
 	  private:
 		void					   ClearEntries();

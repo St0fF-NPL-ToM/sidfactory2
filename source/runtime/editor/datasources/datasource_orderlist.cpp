@@ -177,4 +177,12 @@ namespace Editor
 		return ( m_Arch->m_OrderEvents.IsParamSentinel( SentinelType::Loop, m_Events[ inIndex ] )
 				 || m_Arch->m_OrderEvents.IsParamSentinel( SentinelType::Stop, m_Events[ inIndex ] ) );
 	};
+
+	// when does an entry have a sequence id?  As long as the payload is neither sentinel.
+	bool DataSourceOrderList::HasSequenceId( int inIndex ) const
+	{ return m_Arch->m_OrderEvents.HasPayload( m_Events[ inIndex ] ); }
+
+	uint8_t DataSourceOrderList::GetSequenceId( int inIndex ) const
+	{ return m_Events[ inIndex ].m_Payload - m_Arch->m_OrderEvents.m_Payload.m_Value.m_Offset; }
+
 } // namespace Editor
