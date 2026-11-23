@@ -79,6 +79,7 @@ namespace Editor
 		bool					IsEndIndex( int inIndex ) const;
 		bool					HasSequenceId( int inIndex ) const;
 		uint8_t					GetSequenceId( int inIndex ) const;
+		void					Clear() { ClearEntries(); }
 
 	  private:
 		void					   ClearEntries();

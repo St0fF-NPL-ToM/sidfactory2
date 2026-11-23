@@ -20,8 +20,8 @@ namespace Editor
 
 	struct ValueContext
 	{
-		// a value has its range and possibly a display offset
-		int16_t m_Minimum{}, m_Maximum{}, m_Offset{}, m_Reserved{};
+		// a value has its range and possibly a storage offset and maybe a default value (if not the offset)
+		int16_t m_Minimum{}, m_Maximum{}, m_Offset{}, m_Default{ INT16_MIN };
 
 		// values are actually in use: m_Minimum < m_Maximum.
 		bool	valid( uint16_t value ) const noexcept
@@ -43,10 +43,15 @@ namespace Editor
 				if ( m_Values[ i ] == value ) return m_Types[ i ];
 			return SentinelType::NoSentinel;
 		}
-		uint8_t GetSentinel( SentinelType sen ) const noexcept
+		int SentinelPos( SentinelType sen ) const noexcept
 		{
 			for ( int i{}; i < m_Count; ++i )
-				if ( m_Types[ i ] == sen ) return m_Values[ i ];
+				if ( m_Types[ i ] == sen ) return i;
+			return -1;
+		}
+		uint8_t GetSentinel( SentinelType sen ) const noexcept
+		{
+			if ( auto sp = SentinelPos( sen ); sp != -1 ) return m_Values[ sp ];
 			return 0u;
 		}
 	};
@@ -56,7 +61,13 @@ namespace Editor
 		ValueContext m_Value;	  // Context of the basic field value
 		SentinelDef	 m_Sentinels; // Set of allowed sentinels in this field
 		// For checking if this field actually participates …
-		bool		 isUsed() const noexcept { return m_Value.m_Minimum < m_Value.m_Maximum; }
+		bool		 IsUsed() const noexcept { return m_Value.m_Minimum < m_Value.m_Maximum; }
+		uint8_t		 GetDefault() const noexcept
+		{
+			if ( auto esp = m_Sentinels.SentinelPos( SentinelType::Empty ); esp != -1 )
+				return m_Sentinels.m_Values[ esp ];
+			else return m_Value.m_Default != INT16_MIN ? m_Value.m_Default : m_Value.m_Offset;
+		}
 	};
 
 	struct EventDefinition
@@ -78,22 +89,22 @@ namespace Editor
 
 		uint8_t GetSentinel( SentinelType sen, Semantic sem ) const noexcept
 		{
-			if ( sem == Semantic::Parameter && m_Param.isUsed() ) return m_Param.m_Sentinels.GetSentinel( sen );
-			else if ( sem == Semantic::Command && m_Command.isUsed() ) m_Command.m_Sentinels.GetSentinel( sen );
-			else if ( sem == Semantic::Payload && m_Payload.isUsed() ) m_Payload.m_Sentinels.GetSentinel( sen );
+			if ( sem == Semantic::Parameter && m_Param.IsUsed() ) return m_Param.m_Sentinels.GetSentinel( sen );
+			else if ( sem == Semantic::Command && m_Command.IsUsed() ) return m_Command.m_Sentinels.GetSentinel( sen );
+			else if ( sem == Semantic::Payload && m_Payload.IsUsed() ) return m_Payload.m_Sentinels.GetSentinel( sen );
 			else return 0u;
 		}
 		IEvent MakeEmptyEvent() const noexcept
 		{
-			return { GetSentinel( SentinelType::Empty, Semantic::Parameter ),
-					 GetSentinel( SentinelType::Empty, Semantic::Command ),
-					 GetSentinel( SentinelType::Empty, Semantic::Payload ) };
+			IEvent ev;
+			ClearEvent( ev );
+			return ev;
 		}
 		void ClearEvent( IEvent& evt ) const noexcept
 		{
-			evt.m_Param	  = GetSentinel( SentinelType::Empty, Semantic::Parameter );
-			evt.m_Command = GetSentinel( SentinelType::Empty, Semantic::Command );
-			evt.m_Payload = GetSentinel( SentinelType::Empty, Semantic::Payload );
+			evt.m_Param	  = m_Param.GetDefault();
+			evt.m_Command = m_Command.GetDefault();
+			evt.m_Payload = m_Payload.GetDefault();
 		}
 		bool HasPayload( const IEvent& e ) const noexcept
 		{
