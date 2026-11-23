@@ -31,9 +31,11 @@ namespace Emulation
 namespace Editor
 {
 	class DriverInfo;
-	class IDriverArchitecture : public IOrderStreaming, public ISequenceStreaming
+	class IDriverArchitecture
+		: public IOrderStreaming
+		, public ISequenceStreaming
 	{
-	public:
+	  public:
 		struct PlayMarkerInfo
 		{
 			unsigned char m_OrderListIndex;
@@ -43,13 +45,21 @@ namespace Editor
 			unsigned char m_CurrentSequenceEventDuration;
 			unsigned char m_TickCounters;
 			unsigned char m_NextInstrumentAddress;
-			bool m_SequenceInUse;
+			bool		  m_SequenceInUse;
 		};
+		IDriverArchitecture( EventDefinition&& OrderEventDef, EventDefinition&& SequenceEventDef )
+			: m_OrderEvents( OrderEventDef )
+			, m_SequenceEvents( SequenceEventDef )
+		{}
+		virtual ~IDriverArchitecture() {}
 
-		virtual ~IDriverArchitecture() { }
+		virtual void	SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )	 = 0;
+		virtual void	SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) = 0;
+		virtual void	PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
+													Emulation::CPUMemory*		   inCPUMemory,
+													const DriverInfo&			   inDriverInfo )		 = 0;
 
-		virtual void SetEmptySequence(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) = 0;
-		virtual void SetEmptyOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) = 0;
-		virtual void PostInitSetPlaybackIndices(std::vector<PlayMarkerInfo>& inPlayMarkerInfoList, Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo) = 0;
+		EventDefinition m_OrderEvents;
+		EventDefinition m_SequenceEvents;
 	};
-}
+} // namespace Editor

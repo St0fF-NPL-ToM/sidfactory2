@@ -7,13 +7,11 @@
 cmake_minimum_required( VERSION 4.2 )
 
 set( HEADERS
+    idriver_architecture.h
     ievent_definition.h
     imemory_streaming.h
-    sf2_events.h
-    sf2_streaming.h
 )
 set( SOURCES
-    sf2_streaming.cpp
 )
 set( OTHERS )
 target_sources( SIDFactoryII PRIVATE ${SOURCES} )
