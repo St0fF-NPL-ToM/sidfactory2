@@ -450,14 +450,8 @@ namespace SF2
 	{
 		FOUNDATION_ASSERT(inBytes.size() == 3);
 
-		auto entry = reinterpret_cast<type>()
 		unsigned char instrument = inBytes[0], command = inBytes[1], note = inBytes[2];
 
-		auto *drv = m_DriverInfo->GetDriverArchitecture();
-		if ( drv->CheckValidSequenceEntry( entry ) )
-		{
-
-		}
 		FOUNDATION_ASSERT(instrument < 0x20 || instrument == 0x80 || instrument == 0x90);
 		FOUNDATION_ASSERT(command < 0x40 || command == 0x80);
 		FOUNDATION_ASSERT(note < 0x70 || note == 0x7e);
