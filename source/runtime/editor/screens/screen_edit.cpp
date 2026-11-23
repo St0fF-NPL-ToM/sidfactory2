@@ -15,7 +15,7 @@
 #include "runtime/editor/utilities/datasource_utils.h"
 #include "runtime/editor/driver/driver_info.h"
 #include "runtime/editor/driver/driver_utils.h"
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 #include "runtime/editor/components/component_track.h"
 #include "runtime/editor/components/component_tracks.h"
 #include "runtime/editor/components/component_table_row_elements.h"
@@ -1676,7 +1676,7 @@ namespace Editor
 
 				if(m_EditState.IsFollowPlayMode() && is_playing)
 					return;
-				
+
 				if(InHasFocus)
 				{
 					this->ShowSequenceUsageCount(InSequenceIndex);
@@ -2416,7 +2416,7 @@ namespace Editor
 
 			const int usage_count = sequence_index_use_count[inSequenceIndex];
 			const bool usage_count_plural = usage_count > 1;
-			
+
 			const std::string text = " Sequence " + EditorUtils::ConvertToHexValue(inSequenceIndex, m_DisplayState.IsHexUppercase()) + " referenced " + std::to_string(sequence_index_use_count[inSequenceIndex]) + (usage_count_plural ? " times." : " time.");
 			SetStatusBarMessage(text, 5000);
 		}
@@ -2436,4 +2436,3 @@ namespace Editor
 		m_ExecutionHandler->TellSIDEnvironment();
 	}
 }
-

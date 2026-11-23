@@ -1,6 +1,6 @@
 #pragma once
 
-#include "idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 
 namespace Editor
 {

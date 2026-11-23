@@ -3,7 +3,7 @@
 #include "runtime/editor/dialog/dialog_message.h"
 #include "runtime/editor/driver/driver_utils.h"
 #include "runtime/editor/driver/driver_info.h"
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
 #include "runtime/editor/auxilarydata/auxilary_data_songs.h"
 #include "runtime/editor/screens/screen_edit.h"
@@ -171,13 +171,13 @@ namespace Editor
 			}
 		}
 
-	
+
 		void ImportTables(
-			const std::map<unsigned char, 
-			unsigned char>& table_mapping, 
-			const DriverInfo& inLoadedDriverInfo, 
-			Emulation::CPUMemory& inCPUMemory, 
-			const DriverInfo& inImportDriverInfo, 
+			const std::map<unsigned char,
+			unsigned char>& table_mapping,
+			const DriverInfo& inLoadedDriverInfo,
+			Emulation::CPUMemory& inCPUMemory,
+			const DriverInfo& inImportDriverInfo,
 			const Utility::C64File& inImportFile
 		)
 		{
@@ -197,7 +197,7 @@ namespace Editor
 			}
 		}
 
-	
+
 		void ClearMusicData(const DriverInfo& inLoadedDriverInfo, Emulation::CPUMemory& inCPUMemory)
 		{
 			const auto& music_data = inLoadedDriverInfo.GetMusicData();
@@ -227,7 +227,7 @@ namespace Editor
 			}
 		}
 
-	
+
 		void CopyMusicData(const DriverInfo& inLoadedDriverInfo, Emulation::CPUMemory& inCPUMemory, const DriverInfo& inImportDriverInfo, const Utility::C64File& inImportFile)
 		{
 			unsigned char highest_sequence_index_used = DriverUtils::GetHighestSequenceIndexUsed(inImportDriverInfo, inImportFile);

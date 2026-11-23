@@ -19,14 +19,14 @@ AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: Yes
-AttributeMacros: 
+AttributeMacros:
   - __capability
   - layout
 BasedOnStyle: LLVM
-BraceWrapping: 
+BraceWrapping:
   AfterCaseLabel: false
   AfterClass: true
-  AfterControlStatement: true
+  AfterControlStatement: MultiLine
   AfterEnum: false
   AfterFunction: true
   AfterNamespace: true
@@ -66,7 +66,8 @@ MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
 ObjCBlockIndentWidth: 4
 PointerAlignment: Middle
-SortIncludes: false
+SortIncludes:
+  Enabled: false
 SpaceAfterCStyleCast: true
 SpaceAroundPointerQualifiers: Both
 SpaceBeforeCaseColon: false
@@ -74,13 +75,13 @@ SpaceBeforeRangeBasedForLoopColon: false
 SpaceBeforeSquareBrackets: false
 SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
-SpacesInAngles: true
+SpacesInAngles: Always
 SpacesInCStyleCastParentheses: true
 SpacesInConditionalStatement: true
 SpacesInParentheses: true
 SpacesInSquareBrackets: true
-Standard: Latest
-StatementAttributeLikeMacros: 
+Standard: Auto
+StatementAttributeLikeMacros:
   - Q_EMIT
   - Q_SIGNAL
   - Q_SLOT

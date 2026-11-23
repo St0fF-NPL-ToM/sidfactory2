@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "runtime/editor/datasources/datasource_orderlist.h"
-#include "runtime/editor/datasources/datasource_sequence.h"
+#include "ievent_definition.h"
+#include "imemory_streaming.h"
 #include <vector>
 
 namespace Emulation
@@ -31,7 +31,7 @@ namespace Emulation
 namespace Editor
 {
 	class DriverInfo;
-	class IDriverArchitecture
+	class IDriverArchitecture : public IOrderStreaming, public ISequenceStreaming
 	{
 	public:
 		struct PlayMarkerInfo

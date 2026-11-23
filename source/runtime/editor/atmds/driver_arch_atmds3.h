@@ -41,7 +41,7 @@
  *		range, e.g. ending at $4000.  In "my DDK" I just set it to ($4000-10*128), ColumnMajor.
  *
  */
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 
 namespace Editor
 {

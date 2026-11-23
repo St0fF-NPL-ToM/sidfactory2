@@ -2,7 +2,7 @@
 #include "runtime/editor/atmds/driver_arch_atmds3.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
 #include "runtime/editor/driver/driver_architecture_sidfactory2.h"
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 
 #include "runtime/emulation/cpumemory.h"
 

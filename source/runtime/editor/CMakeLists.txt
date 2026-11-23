@@ -15,14 +15,14 @@ set( HEADERS
     editor_types.h
     overlay_control.h
 
+    auxilarydata/auxilary_data.h
+    auxilarydata/auxilary_data_utils.h
     auxilarydata/auxilary_data_collection.h
-    auxilarydata/auxilary_data_editing_preferences.h
     auxilarydata/auxilary_data_hardware_preferences.h
+    auxilarydata/auxilary_data_editing_preferences.h
     auxilarydata/auxilary_data_play_markers.h
     auxilarydata/auxilary_data_songs.h
     auxilarydata/auxilary_data_table_text.h
-    auxilarydata/auxilary_data_utils.h
-    auxilarydata/auxilary_data.h
 
     components/utils/orderlist_utils.h
     components/utils/text_editing_data_source_table_text.h
@@ -47,7 +47,7 @@ set( HEADERS
     components/component_tracks.h
 
     converters/converterbase.h
-    converters/atmds/converter_atmds.h
+#    converters/atmds/converter_atmds.h
     converters/cc/converter_cc.h
     converters/cc/source_ct.h
     converters/gt/converter_gt.h
@@ -185,7 +185,7 @@ set( SOURCES
     components/component_tracks.cpp
 
     converters/converterbase.cpp
-    converters/atmds/converter_atmds.cpp
+#    converters/atmds/converter_atmds.cpp
     converters/cc/converter_cc.cpp
     converters/cc/source_ct.cpp
     converters/gt/converter_gt.cpp

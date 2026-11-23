@@ -5,7 +5,7 @@
 
 #include "runtime/editor/edit_state.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
-#include "runtime/editor/driver/idriver_architecture.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
 #include "runtime/editor/datasources/datasource_orderlist.h"
 #include "runtime/editor/datasources/datasource_sequence.h"
 
@@ -36,7 +36,7 @@ namespace Utility
 }
 
 namespace Editor
-{	
+{
 	class UndoComponentData;
 	class UndoComponentDataTableTracks;
 
@@ -172,7 +172,7 @@ namespace Editor
 		void CancelOrderListInputValue();
 
 		void SetUndoHandlers(std::function<void(UndoComponentDataTableTracks&)> inAddUndoStepHandler, std::function<void(const UndoComponentDataTableTracks&, CursorControl&)> inOnUndoHandler);
-		
+
 		// Data source
 		std::shared_ptr<DataSourceOrderList> GetDataSourceOrderList();
 
