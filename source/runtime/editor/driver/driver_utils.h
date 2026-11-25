@@ -66,49 +66,4 @@ namespace Editor
 		void		 InsertIRQ( const Editor::DriverInfo& inDriverInfo, Utility::C64FileWriter& inFileWriter );
 	} // namespace DriverUtils
 
-	// DriverReport replaces the driver_utilities query functions basing on internal driver knowledge.
-	// The driver designer may want to apply some kind of better dirty-state-tracking.
-	// The class is misplaced in this header file, though, it consumes above interfaces, thus
-	// for a start it may live in here ...
-	class DriverReport
-	{
-	  protected: // internal storage to cache data
-		union SeqDat
-		{
-			uint16_t value;
-			struct
-			{
-				uint8_t usecnt;
-				uint8_t size;
-			} d;
-		};
-		std::vector< SeqDat >					  m_SequenceData;
-		std::vector< uint16_t >					  m_OrderListLengths;
-		uint8_t									  m_MaxInsUsed, m_MaxCommandUsed;
-		bool									  m_Dirty{ true };
-		const Editor::DriverInfo&				  m_Driver;
-		const Emulation::IMemoryRandomReadAccess& m_Reader;
-
-		DriverReport&							  AcquireReport();
-
-	  public:
-		DriverReport( const Editor::DriverInfo& inDriverInfo, const Emulation::IMemoryRandomReadAccess& inMemoryReader )
-			: m_Driver( inDriverInfo )
-			, m_Reader( inMemoryReader )
-		{}
-		// please make it dirty yourself!
-		void	MakeDirty() { m_Dirty = true; }
-		// queries
-		uint8_t GetHighestSequenceIndexUsed();
-		std::vector< int > GetSequenceUsageCount();
-		uint8_t GetFirstUnusedSequenceIndex();
-		uint8_t GetFirstEmptySequenceIndex();
-		uint8_t						   GetHighestInstrumentIndexUsed() { return AcquireReport().m_MaxInsUsed; }
-		uint8_t						   GetHighestCommandIndexUsed() { return AcquireReport().m_MaxCommandUsed; }
-		const std::vector< uint16_t >& GetOrderListsLength() { return AcquireReport().m_OrderListLengths; }
-		uint16_t					   GetSequenceLength( uint16_t inSequenceIndex )
-		{ return AcquireReport().m_SequenceData[ inSequenceIndex ].d.size; }
-		uint16_t GetEndOfMusicDataAddress();
-		uint16_t GetEndOfFileAddress();
-	};
 } // namespace Editor

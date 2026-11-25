@@ -25,7 +25,8 @@
 namespace Emulation
 {
 	class CPUMemory;
-}
+	class IMemoryRandomReadAccess;
+} // namespace Emulation
 
 namespace Editor
 {
@@ -50,12 +51,30 @@ namespace Editor
 			, m_SequenceEvents( SequenceEventDef )
 		{}
 		virtual ~IDriverArchitecture() {}
+		// Default SF2 Architectural interface
+		using CPU																			   = Emulation::CPUMemory;
+		virtual void SetEmptySequence( CPU* inCPUMemory, unsigned short inAddress )			   = 0;
+		virtual void SetEmptyOrderList( CPU* inCPUMemory, unsigned short inAddress )		   = 0;
+		virtual void PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
+												 CPU*							inCPUMemory,
+												 const DriverInfo&				inDriverInfo ) = 0;
 
-		virtual void			SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )	 = 0;
-		virtual void			SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) = 0;
-		virtual void			PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
-															Emulation::CPUMemory*		   inCPUMemory,
-															const DriverInfo&			   inDriverInfo )		 = 0;
+		// Driver Utility architectural functionality:
+		// → all these functions operate on driver byte data, so they are certainly driver_arch_dependent …
+		// → all these functions operate on a certain driver state / driver info, thus the call signature will
+		//	  always contain input memory and a driver info containing the current states.
+
+#define DRIVER_UTIL_PARAMS const DriverInfo&, const Emulation::IMemoryRandomReadAccess&
+
+		virtual std::vector< uint16_t > GetOrderListsLength( DRIVER_UTIL_PARAMS ) const noexcept		 = 0;
+		virtual std::vector< int >		GetSequenceUsageCount( DRIVER_UTIL_PARAMS ) const noexcept		 = 0;
+		virtual uint16_t				GetEndOfMusicDataAddress( DRIVER_UTIL_PARAMS ) const noexcept	 = 0;
+		virtual uint16_t GetSequenceLength( uint8_t inSequenceIndex, DRIVER_UTIL_PARAMS ) const noexcept = 0;
+		virtual uint8_t	 GetFirstUnusedSequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
+		virtual uint8_t	 GetFirstEmptySequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
+		virtual uint8_t	 GetHighestSequenceIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
+		virtual uint8_t	 GetHighestInstrumentIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
+		virtual uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
 
 		const IEventDefinition& m_OrderEvents;
 		const IEventDefinition& m_SequenceEvents;

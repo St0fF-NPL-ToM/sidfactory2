@@ -19,5 +19,16 @@ namespace Editor
 														 const DriverInfo&				inDriverInfo ) override;
 
 		static unsigned char GetDescriptorType() { return 0x00; }
+
+		// Now, here comes the part SF2 was not regarding as driver interface, which indeed is, though.
+		std::vector< uint16_t > GetOrderListsLength( DRIVER_UTIL_PARAMS ) const noexcept override;
+		std::vector< int >		GetSequenceUsageCount( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint16_t				GetEndOfMusicDataAddress( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint16_t GetSequenceLength( uint8_t inSequenceIndex, DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetFirstUnusedSequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetFirstEmptySequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestSequenceIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestInstrumentIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
 	};
 } // namespace Editor
