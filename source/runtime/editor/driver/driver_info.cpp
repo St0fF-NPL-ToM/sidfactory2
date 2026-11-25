@@ -1,5 +1,5 @@
 #include "runtime/editor/driver/driver_info.h"
-#include "runtime/editor/atmds/driver_arch_atmds3.h"
+// #include "runtime/editor/atmds/driver_arch_atmds3.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
 #include "runtime/editor/driver/driver_architecture_sidfactory2.h"
 #include "runtime/editor/interfaces/idriver_architecture.h"
@@ -312,8 +312,8 @@ namespace Editor
 		{
 			if (driver_type == DriverArchitectureSidFactory2::GetDescriptorType())
 				return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureSidFactory2());
-			if (driver_type == DriverArchitectureATMDS3::GetDescriptorType())
-				return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureATMDS3());
+			// if (driver_type == DriverArchitectureATMDS3::GetDescriptorType())
+			// 	return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureATMDS3());
 			return std::unique_ptr<IDriverArchitecture>();
 		}();
 	}

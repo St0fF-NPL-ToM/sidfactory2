@@ -756,7 +756,7 @@ namespace Editor
 			const int channel		= m_MarkingX;
 
 			if ( channel < channel_count ) {
-				std::vector< DataSourceOrderList::Entry > order_list_copy;
+				std::vector< DataSourceOrderList::Event > order_list_copy;
 
 				int										  marking_top	 = std::min( m_MarkingFromY, m_MarkingToY );
 				int										  marking_bottom = std::max( m_MarkingFromY, m_MarkingToY );
@@ -814,7 +814,7 @@ namespace Editor
 						if ( order_list->IsEndIndex( i ) ) return -1;
 
 						const unsigned char current_sequence_index = ( *order_list )[ i ].m_Payload;
-						FOUNDATION_ASSERT( current_sequence_index < 0x80 );
+						FOUNDATION_ASSERT( current_sequence_index < MAX_SEQUENCE_COUNT );
 
 						const int sequence_length =
 							static_cast< int >( m_SequenceList[ current_sequence_index ]->GetLength() );

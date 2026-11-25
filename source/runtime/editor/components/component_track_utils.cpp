@@ -30,8 +30,8 @@ namespace Editor
 			unsigned int max_event_position = 0;
 
 			for ( unsigned int i = 0; i < inOrderListIndex; ++i )
-				if ( inOrderList->HasSequenceId( i ) )
-					max_event_position += inSequenceList[ inOrderList->GetSequenceId( i ) ]->GetLength();
+				if ( inOrderList->HasPayload( i ) )
+					max_event_position += inSequenceList[ inOrderList->GetPayload( i ) ]->GetLength();
 
 			return max_event_position + inSequencePosition;
 		}

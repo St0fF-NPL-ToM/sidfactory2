@@ -7,14 +7,14 @@ namespace Editor
 {
 	class DataCopyOrderList
 	{
-	public:
+	  public:
 		DataCopyOrderList();
-		DataCopyOrderList(const std::vector<DataSourceOrderList::Entry>& inData);
+		DataCopyOrderList( const std::vector< DataSourceOrderList::Event >& inData );
 
-		unsigned int GetEntryCount() const;
-		const DataSourceOrderList::Entry& operator[](unsigned int inIndex) const;
+		unsigned int					  GetEntryCount() const;
+		const DataSourceOrderList::Event& operator[]( unsigned int inIndex ) const;
 
-	private:
-		std::vector<DataSourceOrderList::Entry> m_Data;
+	  private:
+		std::vector< DataSourceOrderList::Event > m_Data;
 	};
-}
+} // namespace Editor

@@ -12,7 +12,6 @@
 #include "foundation/graphics/color.h"
 
 #include "utils/event.h"
-#include "SDL_keycode.h"
 
 #include <memory>
 #include <string>
@@ -26,14 +25,14 @@ namespace Foundation
 
 	struct Point;
 	struct Extent;
-}
+} // namespace Foundation
 
 namespace Utility
 {
-	template<typename CONTEXT>
+	template < typename CONTEXT >
 	class KeyHook;
 	class KeyHookStore;
-}
+} // namespace Utility
 
 namespace Editor
 {
@@ -48,15 +47,15 @@ namespace Editor
 	{
 		class EventPosDetails
 		{
-		public:
+		  public:
 			EventPosDetails();
 
-			void Set(unsigned int inOrderListIndex, unsigned int inSequenceIndex);
+			void		 Set( unsigned int inOrderListIndex, unsigned int inSequenceIndex );
 
 			unsigned int OrderListIndex() const;
 			unsigned int SequenceIndex() const;
 
-		private:
+		  private:
 			unsigned int m_OrderListIndex;
 			unsigned int m_SequenceIndex;
 		};
@@ -64,7 +63,7 @@ namespace Editor
 		struct KeyHookContext
 		{
 			ComponentsManager& m_ComponentsManager;
-			int& m_NewEventPos;
+			int&			   m_NewEventPos;
 		};
 
 		struct SequenceColors
@@ -96,335 +95,354 @@ namespace Editor
 			Foundation::Color m_NoteValueSelectedHighlightFocusLine;
 		};
 
-	public:
-		using OrderListIndexChangedEvent = Utility::TEvent<void(bool, unsigned int, unsigned char)>;
-		using SequenceSplitEvent = Utility::TEvent<void(unsigned char, unsigned char)>;
-		using SequenceChangedEvent = Utility::TEvent<void(void)>;
-		using OrderListChangedEvent = Utility::TEvent<void(void)>;
-		using ComputeMaxEventPosEvent = Utility::TEvent<void(void)>;
+	  public:
+		using OrderListIndexChangedEvent = Utility::TEvent< void( bool, unsigned int, unsigned char ) >;
+		using SequenceSplitEvent		 = Utility::TEvent< void( unsigned char, unsigned char ) >;
+		using SequenceChangedEvent		 = Utility::TEvent< void( void ) >;
+		using OrderListChangedEvent		 = Utility::TEvent< void( void ) >;
+		using ComputeMaxEventPosEvent	 = Utility::TEvent< void( void ) >;
 
-		ComponentTrack(
-			int inID,
-			int inGroupID,
-			Undo* inUndo,
-			std::shared_ptr<DataSourceOrderList> inDataSourceOrderList,
-			const std::vector<std::shared_ptr<DataSourceSequence>>& inDataSourceSequenceList,
-			Foundation::TextField* inTextField,
-			const EditState& inEditState,
-			const Utility::KeyHookStore& inKeyHookStore,
-			const AuxilaryDataCollection& inAuxilaryDataCollection,
-			std::function<void(bool, int, int)> inStatusReportFunction,
-			std::function<unsigned char()> inGetFirstFreeSequenceIndexFunction,
-			std::function<unsigned char()> inGetFirstEmptySequenceIndexFunction,
-			int inX,
-			int inY,
-			int inHeight
-		);
+		ComponentTrack( int	  inID,
+						int	  inGroupID,
+						Undo* inUndo,
+						std::shared_ptr< DataSourceOrderList >
+																					inDataSourceOrderList,
+						const std::vector< std::shared_ptr< DataSourceSequence > >& inDataSourceSequenceList,
+						Foundation::TextField*										inTextField,
+						const EditState&											inEditState,
+						const Utility::KeyHookStore&								inKeyHookStore,
+						const AuxilaryDataCollection&								inAuxilaryDataCollection,
+						std::function< void( bool, int, int ) >
+							inStatusReportFunction,
+						std::function< unsigned char() >
+							inGetFirstFreeSequenceIndexFunction,
+						std::function< unsigned char() >
+							inGetFirstEmptySequenceIndexFunction,
+						int inX,
+						int inY,
+						int inHeight );
 		~ComponentTrack();
 
-		void SetPosition(const Foundation::Point& inPosition);
-		void SetHeight(int inHeight);
+		void SetPosition( const Foundation::Point& inPosition );
+		void SetHeight( int inHeight );
 
-		void SetHasControl(GetControlType inGetControlType, CursorControl& inCursorControl) override;
-		void ClearHasControl(CursorControl& inCursorControl) override;
+		void SetHasControl( GetControlType inGetControlType, CursorControl& inCursorControl ) override;
+		void ClearHasControl( CursorControl& inCursorControl ) override;
 
-		bool ConsumeInput(const Foundation::Keyboard& inKeyboard, CursorControl& inCursorControl, ComponentsManager& inComponentsManager) override;
-		bool ConsumeInput(const Foundation::Mouse& inMouse, bool inModifierKeyMask, CursorControl& inCursorControl, ComponentsManager& inComponentsManager) override;
-		bool ConsumeNonExclusiveInput(const Foundation::Mouse& inMouse) override;
+		bool ConsumeInput( const Foundation::Keyboard& inKeyboard,
+						   CursorControl&			   inCursorControl,
+						   ComponentsManager&		   inComponentsManager ) override;
+		bool ConsumeInput( const Foundation::Mouse& inMouse,
+						   bool						inModifierKeyMask,
+						   CursorControl&			inCursorControl,
+						   ComponentsManager&		inComponentsManager ) override;
+		bool ConsumeNonExclusiveInput( const Foundation::Mouse& inMouse ) override;
 
-		void Refresh(const DisplayState& inDisplayState) override;
+		void Refresh( const DisplayState& inDisplayState ) override;
 		void HandleDataChange() override;
-		void PullDataFromSource(const bool inFromUndo) override;
+		void PullDataFromSource( const bool inFromUndo ) override;
 		void PullSequenceDataFromSource();
 
-		void ExecuteInsertDeleteRule(const DriverInfo::TableInsertDeleteRule& inRule, int inSourceTableID, int inIndexPre, int inIndexPost) override;
-		void ExecuteAction(int inActionInput) override;
+		void ExecuteInsertDeleteRule( const DriverInfo::TableInsertDeleteRule& inRule,
+									  int									   inSourceTableID,
+									  int									   inIndexPre,
+									  int									   inIndexPost ) override;
+		void ExecuteAction( int inActionInput ) override;
 
 		void ForceRefresh() override;
 
-		int GetCursorPosition() const;
-		void SetCursorPosition(int inCursorPosition);
+		int	 GetCursorPosition() const;
+		void SetCursorPosition( int inCursorPosition );
 
-		int GetMaxEventPosition() const;
-		void SetEventPosition(int inEventPos, bool inForceOrderListIndexChangeEvent = false);
-		int GetEventPosition() const;
-		int GetEventPositionAtTopOfCurrentSequence() const;
+		int	 GetMaxEventPosition() const;
+		void SetEventPosition( int inEventPos, bool inForceOrderListIndexChangeEvent = false );
+		int	 GetEventPosition() const;
+		int	 GetEventPositionAtTopOfCurrentSequence() const;
 
-		void SetFocusModeOrderList(bool inFocusModeOrderList);
+		void SetFocusModeOrderList( bool inFocusModeOrderList );
 		bool GetFocusModeOrderList() const;
 		bool IsTakingOrderListInput() const;
 
 		bool IsMuted() const;
-		void SetMuted(bool inMuted);
+		void SetMuted( bool inMuted );
 
 		void SetOrderlistLoopPoint();
-		int GetLoopEventPosition() const;
+		int	 GetLoopEventPosition() const;
 
 		bool ConsumeHasInputCausedSequenceDataChange();
-		bool ComputePlaybackStateFromEventPosition(int inEventPos, std::vector<IDriverArchitecture::PlayMarkerInfo>& outOrderListIndices) const;
+		bool ComputePlaybackStateFromEventPosition(
+			int inEventPos, std::vector< IDriverArchitecture::PlayMarkerInfo >& outOrderListIndices ) const;
 
 		OrderListIndexChangedEvent& GetOrderListIndexChangedEvent();
-		SequenceSplitEvent& GetSequenceSplitEvent();
-		SequenceChangedEvent& GetSequenceChangedEvent();
-		OrderListChangedEvent& GetOrderListChangedEvent();
-		ComputeMaxEventPosEvent& GetComputeMaxEventPosEvent();
+		SequenceSplitEvent&			GetSequenceSplitEvent();
+		SequenceChangedEvent&		GetSequenceChangedEvent();
+		OrderListChangedEvent&		GetOrderListChangedEvent();
+		ComputeMaxEventPosEvent&	GetComputeMaxEventPosEvent();
 
-		void CancelOrderListInputValue();
+		void						CancelOrderListInputValue();
 
-		void SetUndoHandlers(std::function<void(UndoComponentDataTableTracks&)> inAddUndoStepHandler, std::function<void(const UndoComponentDataTableTracks&, CursorControl&)> inOnUndoHandler);
+		void SetUndoHandlers( std::function< void( UndoComponentDataTableTracks& ) > inAddUndoStepHandler,
+							  std::function< void( const UndoComponentDataTableTracks&, CursorControl& ) >
+								  inOnUndoHandler );
 
 		// Data source
-		std::shared_ptr<DataSourceOrderList> GetDataSourceOrderList();
+		std::shared_ptr< DataSourceOrderList > GetDataSourceOrderList();
 
 		// Data changed
-		void OnOrderListChanged();
+		void								   OnOrderListChanged();
 
-	private:
+	  private:
 		// Order list
-		bool BeginOrderListInput();
-		void ApplyOrderListValueKey(char inValueKey);
-		void ApplyOrderListInputValue();
+		bool		 BeginOrderListInput();
+		void		 ApplyOrderListValueKey( char inValueKey );
+		void		 ApplyOrderListInputValue();
 
 		// Sequence
-		void DrawSequenceLine(int inX, int inY, const SequenceColors& inColors, const bool inIsHexUppercase, const std::shared_ptr<DataSourceSequence>& inSequence, unsigned int inSequenceIndex, int inTransposition, const bool inIsFocusLine, unsigned char& ioCurrentInstrument);
+		void		 DrawSequenceLine( int											inX,
+									   int											inY,
+									   const SequenceColors&						inColors,
+									   const bool									inIsHexUppercase,
+									   const std::shared_ptr< DataSourceSequence >& inSequence,
+									   unsigned int									inSequenceIndex,
+									   int											inTransposition,
+									   const bool									inIsFocusLine,
+									   unsigned char&								ioCurrentInstrument );
 
-		bool IsCursorAtSequenceInstrument() const;
-		bool IsCursorAtSequenceCommand() const;
-		bool IsCursorAtSequenceNote() const;
+		bool		 IsCursorAtSequenceInstrument() const;
+		bool		 IsCursorAtSequenceCommand() const;
+		bool		 IsCursorAtSequenceNote() const;
 
 		unsigned int GetSequenceSize() const;
 
-		int ApplySequenceValueKey(char inValueKey);
-		int ApplySequenceNoteValue(int inNoteValue);
-		int ApplySequenceHoldNoteValue();
-		void ToggleSequenceHoldNoteValueInMarkedArea();
-		bool ApplyTranspose(char inDelta);
-		bool ApplyTransposeInMarkedArea(char inDelta);
-		void ToggleSequenceHoldNoteUntilEvent(bool inDown);
-		void ToggleSequenceTieNote();
-		void ToggleSequenceTieNoteInMarkedArea();
-		int EraseSequenceLine(bool inValueOnlyAtCursor);
-		void EraseSequenceLinesInMarkedArea(bool inValueOnlyAtCursor);
+		int			 ApplySequenceValueKey( char inValueKey );
+		int			 ApplySequenceNoteValue( int inNoteValue );
+		int			 ApplySequenceHoldNoteValue();
+		void		 ToggleSequenceHoldNoteValueInMarkedArea();
+		bool		 ApplyTranspose( char inDelta );
+		bool		 ApplyTransposeInMarkedArea( char inDelta );
+		void		 ToggleSequenceHoldNoteUntilEvent( bool inDown );
+		void		 ToggleSequenceTieNote();
+		void		 ToggleSequenceTieNoteInMarkedArea();
+		int			 EraseSequenceLine( bool inValueOnlyAtCursor );
+		void		 EraseSequenceLinesInMarkedArea( bool inValueOnlyAtCursor );
 
-		int DeleteSequenceLine(bool inChangeSequenceSize);
-		int InsertSequenceLine(bool inChangeSequenceSize);
-		int ResizeSequence(int inLength);
-		int ResizeAndReplaceData(const DataCopySequence* inSequenceData);
-		int PasteSequenceEventData(const DataCopySequenceEvents* inSequenceEventData, bool inInsert);
-		int InsertSequenceLines(int inLineCount);
+		int			 DeleteSequenceLine( bool inChangeSequenceSize );
+		int			 InsertSequenceLine( bool inChangeSequenceSize );
+		int			 ResizeSequence( int inLength );
+		int			 ResizeAndReplaceData( const DataCopySequence* inSequenceData );
+		int			 PasteSequenceEventData( const DataCopySequenceEvents* inSequenceEventData, bool inInsert );
+		int			 InsertSequenceLines( int inLineCount );
 
 		// Event position
-	public:
+	  public:
 		void UpdateMaxEventPos();
 
-	private:
-		void SetEventPosDetails(unsigned int inOrderListIndex, unsigned int inSequenceIndex, bool inForceOrderListIndexChangeEvent = false);
+	  private:
+		void			   SetEventPosDetails( unsigned int inOrderListIndex,
+											   unsigned int inSequenceIndex,
+											   bool			inForceOrderListIndexChangeEvent = false );
 
 		// Status report
-		void UpdateSequenceStatusReport();
-		void UpdateOrderListStatusReport();
+		void			   UpdateSequenceStatusReport();
+		void			   UpdateOrderListStatusReport();
 
 		// Cursor
-		void ApplyCursorPosition(CursorControl& inCursorControl);
-		int GetCursorPositionXFromSequenceCellX(int inCellX) const;
-		int GetCursorPositionXFromOrderListCellX(int inCellX) const;
+		void			   ApplyCursorPosition( CursorControl& inCursorControl );
+		int				   GetCursorPositionXFromSequenceCellX( int inCellX ) const;
+		int				   GetCursorPositionXFromOrderListCellX( int inCellX ) const;
 
 		// Keys
-		void DoKeyLeft(bool inControlIsDown);
-		void DoKeyRight(bool inControlIsDown);
-		int DoKeyDown();
-		int DoKeyUp();
-		int DoKeyPageDown();
-		int DoKeyPageUp();
-		int DoInsert(bool inIsControlDown);
-		int DoDelete(bool inIsControlDown);
-		int DoBackspace(bool inIsControlDown);
-		int DoInsertFirstFreeSequence(const std::function<unsigned char()> inFindFreeSequence);
-		void DoSplitSequence();
-		void DoDuplicateSequence(const bool inReplaceOriginal);
-		void DoTestExpandSequence();
-		void DoResizeSequence(ComponentsManager& inComponentsManager);
-		void DoInsertLinesInSequence(ComponentsManager& inComponentsManager);
-		void DoCopyFullSequenceData();
-		void DoCopyMarkedSequenceData();
-		void DoPaste(bool inResizeSequence);
-		void DoSetInstrumentIndexValue(unsigned char inValue);
-		void DoSetCommandIndexValue(unsigned char inValue);
+		void			   DoKeyLeft( bool inControlIsDown );
+		void			   DoKeyRight( bool inControlIsDown );
+		int				   DoKeyDown();
+		int				   DoKeyUp();
+		int				   DoKeyPageDown();
+		int				   DoKeyPageUp();
+		int				   DoInsert( bool inIsControlDown );
+		int				   DoDelete( bool inIsControlDown );
+		int				   DoBackspace( bool inIsControlDown );
+		int				   DoInsertFirstFreeSequence( const std::function< unsigned char() > inFindFreeSequence );
+		void			   DoSplitSequence();
+		void			   DoDuplicateSequence( const bool inReplaceOriginal );
+		void			   DoTestExpandSequence();
+		void			   DoResizeSequence( ComponentsManager& inComponentsManager );
+		void			   DoInsertLinesInSequence( ComponentsManager& inComponentsManager );
+		void			   DoCopyFullSequenceData();
+		void			   DoCopyMarkedSequenceData();
+		void			   DoPaste( bool inResizeSequence );
+		void			   DoSetInstrumentIndexValue( unsigned char inValue );
+		void			   DoSetCommandIndexValue( unsigned char inValue );
 
 		// Marking
-		void DoBeginMarking(int inBeginMarkingEventPos);
-		void DoCancelMarking();
+		void			   DoBeginMarking( int inBeginMarkingEventPos );
+		void			   DoCancelMarking();
 
 		// Data change
-		void OnSequenceChanged(unsigned char inSequenceIndex);
+		void			   OnSequenceChanged( unsigned char inSequenceIndex );
 
 		// Event pos details
-		EventPosDetails GetEventPosDetails(int inEventPos) const;
-		bool IsEventPosStartOfSequence(int inEventPos) const;
+		EventPosDetails	   GetEventPosDetails( int inEventPos ) const;
+		bool			   IsEventPosStartOfSequence( int inEventPos ) const;
 
 		// Undo
-		void AddUndoStep();
-		void AddUndoRecentModificationStep(bool inLockCPU);
-		void OnUndo(const UndoComponentData& inData, CursorControl& inCursorControl);
+		void			   AddUndoStep();
+		void			   AddUndoRecentModificationStep( bool inLockCPU );
+		void			   OnUndo( const UndoComponentData& inData, CursorControl& inCursorControl );
 
 		// Key hooks
-		void ConfigureKeyHooks(const Utility::KeyHookStore& inKeyHookStore);
+		void			   ConfigureKeyHooks( const Utility::KeyHookStore& inKeyHookStore );
 
-		static std::string ToHexValueString(unsigned char inValue, const bool inUppercase);
+		static std::string ToHexValueString( unsigned char inValue, const bool inUppercase );
 
-		template<typename PREDICATE>
-		std::vector<unsigned char> ForEachEventInMarkedRange(PREDICATE&& inPredicate);
+		template < typename PREDICATE >
+		std::vector< unsigned char >						   ForEachEventInMarkedRange( PREDICATE&& inPredicate );
 
 		// Edit state
-		const EditState& m_EditState;
+		const EditState&									   m_EditState;
 
 		// Auxiliary song data
-		const AuxilaryDataCollection& m_AuxilaryDataPlayMarkers;
+		const AuxilaryDataCollection&						   m_AuxilaryDataPlayMarkers;
 
 		// Muted
-		bool m_IsMuted;
+		bool												   m_IsMuted;
 
 		// Cursor and event positions
-		int m_CursorPos;
+		int													   m_CursorPos;
 
-		int m_EventPos;
-		int m_MaxEventPos;
-		EventPosDetails m_EventPosDetails;
+		int													   m_EventPos;
+		int													   m_MaxEventPos;
+		EventPosDetails										   m_EventPosDetails;
 
-		int m_EventPosOrderListIndex;
-		int m_EventPosSequenceIndex;
+		int													   m_EventPosOrderListIndex;
+		int													   m_EventPosSequenceIndex;
 
 		// Order list input focus
-		bool m_FocusModeOrderList;
-		bool m_TakingOrderListInput;
-		unsigned short m_OrderListInputValue;
+		bool												   m_FocusModeOrderList;
+		bool												   m_TakingOrderListInput;
+		unsigned short										   m_OrderListInputValue;
 
 		// Data change
-		bool m_SequenceDataHasChanged;
-		bool m_HasDataChangeOrderList;
-		bool m_LocalDataChange;
-		std::vector<unsigned char> m_DataChangeSequenceIndexList;
+		bool												   m_SequenceDataHasChanged;
+		bool												   m_HasDataChangeOrderList;
+		bool												   m_LocalDataChange;
+		std::vector< unsigned char >						   m_DataChangeSequenceIndexList;
 
-		int m_TopEventPos;
-		int m_HasFirstValid;
-		unsigned int m_FirstValidOrderListIndex;
-		unsigned int m_FirstValidSequenceIndex;
+		int													   m_TopEventPos;
+		int													   m_HasFirstValid;
+		unsigned int										   m_FirstValidOrderListIndex;
+		unsigned int										   m_FirstValidSequenceIndex;
 
 		// Marking
-		bool m_IsMarkingArea;
-		int m_MarkingFromEventPos;
-		int m_MarkingToEventPos;
+		bool												   m_IsMarkingArea;
+		int													   m_MarkingFromEventPos;
+		int													   m_MarkingToEventPos;
 
 		// Undo
-		std::function<void(UndoComponentDataTableTracks&)> m_AddUndoStepHandler;
-		std::function<void(const UndoComponentDataTableTracks&, CursorControl&)> m_OnUndoHandler;
+		std::function< void( UndoComponentDataTableTracks& ) > m_AddUndoStepHandler;
+		std::function< void( const UndoComponentDataTableTracks&, CursorControl& ) > m_OnUndoHandler;
 
-		ComponentTrackUtils::FocusRow m_FocusRow;
+		ComponentTrackUtils::FocusRow												 m_FocusRow;
 
-		std::shared_ptr<DataSourceOrderList> m_DataSourceOrderList;
-		std::vector<std::shared_ptr<DataSourceSequence>> m_DataSourceSequenceList;
+		std::shared_ptr< DataSourceOrderList >										 m_DataSourceOrderList;
+		std::vector< std::shared_ptr< DataSourceSequence > >						 m_DataSourceSequenceList;
 
-		std::function<void(bool, int, int)> m_StatusReportFunction;
-		std::function<unsigned char()> m_GetFirstFreeSequenceIndexFunction;
-		std::function<unsigned char()> m_GetFirstEmptySequenceIndexFunction;
+		std::function< void( bool, int, int ) >										 m_StatusReportFunction;
+		std::function< unsigned char() >						   m_GetFirstFreeSequenceIndexFunction;
+		std::function< unsigned char() >						   m_GetFirstEmptySequenceIndexFunction;
 
-		OrderListIndexChangedEvent m_OrderListIndexChangedEvent;
-		SequenceSplitEvent m_SequenceSplitEvent;
-		SequenceChangedEvent m_SequenceChangedEvent;
-		OrderListChangedEvent m_OrderListChangedEvent;
-		ComputeMaxEventPosEvent m_ComputedMaxEventPosEvent;
+		OrderListIndexChangedEvent								   m_OrderListIndexChangedEvent;
+		SequenceSplitEvent										   m_SequenceSplitEvent;
+		SequenceChangedEvent									   m_SequenceChangedEvent;
+		OrderListChangedEvent									   m_OrderListChangedEvent;
+		ComputeMaxEventPosEvent									   m_ComputedMaxEventPosEvent;
 
 		// KeyHooks
-		std::vector<Utility::KeyHook<bool(KeyHookContext&)>> m_KeyHooks;
+		std::vector< Utility::KeyHook< bool( KeyHookContext& ) > > m_KeyHooks;
 
-		static const int page_up_down_step = 16;
+		static const int										   page_up_down_step = 16;
 
-		static std::string ms_NotesSharp[12];
-		static std::string ms_NotesFlat[12];
+		static std::string										   ms_NotesSharp[ 12 ];
+		static std::string										   ms_NotesFlat[ 12 ];
 	};
 
 
-	template<typename PREDICATE>
-	std::vector<unsigned char> ComponentTrack::ForEachEventInMarkedRange(PREDICATE&& inPredicate)
+	template < typename PREDICATE >
+	std::vector< unsigned char > ComponentTrack::ForEachEventInMarkedRange( PREDICATE&& inPredicate )
 	{
 		struct AlteredSequenceEvent
 		{
 			unsigned char m_SequenceIndex;
-			int m_SequenceEventPos;
+			int			  m_SequenceEventPos;
 		};
 
-		int top = m_IsMarkingArea ? std::min(m_MarkingFromEventPos, m_MarkingToEventPos) : m_EventPos;
-		int bottom = m_IsMarkingArea ? std::max(m_MarkingFromEventPos, m_MarkingToEventPos) : m_EventPos;
+		int	 top				= m_IsMarkingArea ? std::min( m_MarkingFromEventPos, m_MarkingToEventPos ) : m_EventPos;
+		int	 bottom				= m_IsMarkingArea ? std::max( m_MarkingFromEventPos, m_MarkingToEventPos ) : m_EventPos;
 
 		// Find sequence and index of top position
-		int find_event_pos = top;
-		int event_pos = 0;
+		int	 find_event_pos		= top;
+		int	 event_pos			= 0;
 
-		int orderlist_index = 0;
-		int sequence_event_pos = 0;
+		int	 orderlist_index	= 0;
+		int	 sequence_event_pos = 0;
 
-		bool found = false;
+		bool found				= false;
 
-		for (unsigned int i = 0; i < m_DataSourceOrderList->GetLength(); ++i)
-		{
-			unsigned char sequence_index = (*m_DataSourceOrderList)[i].m_SequenceIndex;
-			const std::shared_ptr<DataSourceSequence>& sequence = m_DataSourceSequenceList[sequence_index];
+		for ( unsigned int i = 0; i < m_DataSourceOrderList->GetLength(); ++i )
+			if ( m_DataSourceOrderList->HasPayload( i ) ) {
+				unsigned char								 sequence_index = m_DataSourceOrderList->GetPayload( i );
+				const std::shared_ptr< DataSourceSequence >& sequence = m_DataSourceSequenceList[ sequence_index ];
 
-			int next_event_pos = event_pos + sequence->GetLength();
+				int											 next_event_pos = event_pos + sequence->GetLength();
 
-			if (find_event_pos >= event_pos && find_event_pos < next_event_pos)
-			{
-				orderlist_index = i;
-				sequence_event_pos = find_event_pos - event_pos;
+				if ( find_event_pos >= event_pos && find_event_pos < next_event_pos ) {
+					orderlist_index	   = i;
+					sequence_event_pos = find_event_pos - event_pos;
 
-				found = true;
-				break;
+					found			   = true;
+					break;
+				}
+
+				event_pos = next_event_pos;
 			}
 
-			event_pos = next_event_pos;
-		}
+		if ( !found ) return std::vector< unsigned char >();
 
-		if (!found)
-			return std::vector<unsigned char>();
+		std::vector< AlteredSequenceEvent > altered_sequence_events;
 
-		std::vector<AlteredSequenceEvent> altered_sequence_events;
-
-		const auto is_sequence_event_already_altered = [&](unsigned char inSequenceIndex, int inSequenceEventPos)
+		const auto is_sequence_event_already_altered = [ & ]( unsigned char inSequenceIndex, int inSequenceEventPos )
 		{
-			const auto it = std::find_if(altered_sequence_events.begin(), altered_sequence_events.end(), [&](const auto& data) { return data.m_SequenceIndex == inSequenceIndex && data.m_SequenceEventPos == inSequenceEventPos; });
+			const auto it = std::find_if(
+				altered_sequence_events.begin(),
+				altered_sequence_events.end(),
+				[ & ]( const auto& data )
+				{ return data.m_SequenceIndex == inSequenceIndex && data.m_SequenceEventPos == inSequenceEventPos; } );
 			return it != altered_sequence_events.end();
 		};
 
-		std::vector<unsigned char> altered_sequence_indicies;
-		unsigned char last_sequence_index = 0xff;
+		std::vector< unsigned char > altered_sequence_indicies;
+		unsigned char				 last_sequence_index = 0xff;
 
-		for (int event_pos = top, i = 0; event_pos <= bottom; ++event_pos, ++i)
-		{
-			const auto& orderlist_entry = (*m_DataSourceOrderList)[orderlist_index];
-			if (orderlist_entry.m_Transposition >= 0xfe)
-				break;
+		for ( int event_pos = top, i = 0; event_pos <= bottom; ++event_pos, ++i ) {
+			if ( m_DataSourceOrderList->IsEndIndex( orderlist_index ) ) break;
 
-			unsigned char sequence_index = orderlist_entry.m_SequenceIndex;
+			unsigned char sequence_index = m_DataSourceOrderList->GetPayload( orderlist_index );
 
-			if (sequence_index != last_sequence_index)
-			{
-				altered_sequence_indicies.push_back(sequence_index);
+			if ( sequence_index != last_sequence_index ) {
+				altered_sequence_indicies.push_back( sequence_index );
 				last_sequence_index = sequence_index;
 			}
 
-			const std::shared_ptr<DataSourceSequence>& sequence = m_DataSourceSequenceList[sequence_index];
+			const std::shared_ptr< DataSourceSequence >& sequence = m_DataSourceSequenceList[ sequence_index ];
 
-			if (!is_sequence_event_already_altered(sequence_index, sequence_event_pos))
-			{
-				altered_sequence_events.push_back({ sequence_index, sequence_event_pos });
+			if ( !is_sequence_event_already_altered( sequence_index, sequence_event_pos ) ) {
+				altered_sequence_events.push_back( { sequence_index, sequence_event_pos } );
 
-				DataSourceSequence::Event& event = (*sequence)[sequence_event_pos];
-				inPredicate(event, i);
+				DataSourceSequence::Event& event = ( *sequence )[ sequence_event_pos ];
+				inPredicate( event, i );
 			}
 
 			++sequence_event_pos;
-			if (sequence_event_pos >= static_cast<int>(sequence->GetLength()))
-			{
+			if ( sequence_event_pos >= static_cast< int >( sequence->GetLength() ) ) {
 				++orderlist_index;
 				sequence_event_pos = 0;
 			}
@@ -432,4 +450,4 @@ namespace Editor
 
 		return altered_sequence_indicies;
 	}
-}
+} // namespace Editor

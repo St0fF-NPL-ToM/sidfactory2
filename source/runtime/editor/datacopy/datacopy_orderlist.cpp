@@ -8,7 +8,7 @@ namespace Editor
 	}
 
 
-	DataCopyOrderList::DataCopyOrderList(const std::vector<DataSourceOrderList::Entry>& inData)
+	DataCopyOrderList::DataCopyOrderList(const std::vector<DataSourceOrderList::Event>& inData)
 		: m_Data(inData)
 	{
 	}
@@ -20,7 +20,7 @@ namespace Editor
 	}
 
 
-	const DataSourceOrderList::Entry& DataCopyOrderList::operator[](unsigned int inIndex) const
+	const DataSourceOrderList::Event& DataCopyOrderList::operator[](unsigned int inIndex) const
 	{
 		FOUNDATION_ASSERT(inIndex >= 0);
 		FOUNDATION_ASSERT(inIndex < GetEntryCount());

@@ -2,7 +2,8 @@
 
 #include "datasource_emulation_memory.h"
 #include "runtime/editor/interfaces/ievent_definition.h"
-#include "idatasource.h"
+#include "runtime/editor/datasources/idatasource_events.h"
+#include "runtime/editor/global_constants.h"
 
 #include <memory>
 
@@ -15,33 +16,9 @@ namespace Editor
 {
 	class IDriverArchitecture;
 
-	class DataSourceOrderList : public DataSourceEmulationMemory
+	class DataSourceOrderList : public IDataSourceEvents
 	{
 	  public:
-		const int MaxEntryCount = 256;
-
-		struct Entry : public IEvent
-		{
-			unsigned char& m_Transposition() { return m_Param; }
-			unsigned char& m_SequenceIndex() { return m_Payload; }
-		};
-
-		struct PackResult
-		{
-			PackResult()
-				: m_Data( nullptr )
-				, m_DataLength( -1 )
-			{}
-
-			PackResult( unsigned char* inData, int inDataLength )
-				: m_Data( inData )
-				, m_DataLength( inDataLength )
-			{}
-
-			std::shared_ptr< unsigned char > m_Data;
-			int								 m_DataLength;
-		};
-
 		struct PackedDataEventPosition
 		{
 			bool		  m_IsValid;
@@ -50,48 +27,23 @@ namespace Editor
 			unsigned char m_CurrentTranspose;
 		};
 
-		DataSourceOrderList( const IDriverArchitecture* inArch, Emulation::CPUMemory* inCPUMemory,
-							 unsigned short inSourceAddress, int inBlockSize );
-		virtual ~DataSourceOrderList();
+		DataSourceOrderList( Emulation::CPUMemory* inCPUMemory, const Editor::DriverInfo& inDriverInfo,
+							 const Editor::DriverState& inDriverState, unsigned short inSourceAddress,
+							 int inBlockSize );
+		virtual ~DataSourceOrderList() = default;
 
-		Entry&					operator[]( int inIndex );
-		const Entry&			operator[]( int inIndex ) const;
+		uint8_t		  GetSequenceId( int inIndex ) const noexcept { return IDataSourceEvents::GetPayload( inIndex ); }
 
-		bool					PushDataToSource() override;
-		void					PullDataFromSource() override;
+		bool		  CanIncreaseSize() const;
+		void		  IncreaseSize();
+		void		  DecreaseSize();
+		void		  ComputeLength();
 
-		unsigned int			GetPackedSize() const;
-		unsigned int			GetLength() const;
-
-		bool					CanIncreaseSize() const;
-		void					IncreaseSize();
-		void					DecreaseSize();
-		void					ComputeLength();
-
-		unsigned char			GetLoopIndex() const;
-		void					SetLoopIndex( unsigned char inLoopIndex );
-
-		PackResult				Pack() const;
-		void					SendPackedDataToBuffer( const PackResult& inPackResult );
+		unsigned char GetLoopIndex() const;
+		void		  SetLoopIndex( unsigned char inLoopIndex );
 
 		PackedDataEventPosition GetIndexInPackedData( int inIndex ) const;
 
-		bool					IsEndIndex( int inIndex ) const;
-		bool					HasSequenceId( int inIndex ) const;
-		uint8_t					GetSequenceId( int inIndex ) const;
-		void					Clear() { ClearEntries(); }
-
-	  private:
-		void					   ClearEntries();
-
-		void					   Unpack();
-
-		unsigned int			   m_Length;
-
-		Entry*					   m_Events;
-		unsigned char*			   m_InternalBuffer;
-		unsigned int			   m_PackedSize;
-
-		const IDriverArchitecture* m_Arch;
+		void Flush() noexcept;
 	};
 } // namespace Editor
