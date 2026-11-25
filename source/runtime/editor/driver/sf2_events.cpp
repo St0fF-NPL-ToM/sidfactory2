@@ -2,22 +2,22 @@
  *  SF2 Event redefinition
  */
 
-#include "runtime/editor/driver/sf2_streaming.h"
+#include "runtime/editor/driver/sf2_events.h"
+#include "runtime/editor/global_constants.h"
 
 #include "foundation/base/assert.h"
 
 namespace Editor
 {
 
-	DataSourceOrderList::PackResult SF2_OrderStreaming::PackOrderList( const DataSourceOrderList& inData,
-																	   unsigned char* m_InternalBuffer ) const
+	EventsPackResult SF2_OrderEvent::Pack( const IDataSourceEvents& inData, uint8_t* m_InternalBuffer ) const noexcept
 	{
 		int end_index  = -1;
 		int end_marker = 0;
 		int loop_index = -1;
 
 		// Find end marker and loop index
-		for ( int i = 0; i < inData.MaxEntryCount; ++i ) {
+		for ( int i = 0; i < MAX_ORDER_EVENTS; ++i ) {
 			const unsigned char val = inData[ i ].m_Param;
 			if ( val == 0xff || val == 0xfe ) {
 				end_index  = i;
@@ -32,7 +32,7 @@ namespace Editor
 		// If end marker wasn't found, return with no content
 		if ( end_index == -1 ) {
 			// Orderlist was without end marker
-			return DataSourceOrderList::PackResult( nullptr, 0 );
+			return EventsPackResult( nullptr, 0 );
 		}
 
 		unsigned char current_transposition = 0;
@@ -72,52 +72,21 @@ namespace Editor
 
 			for ( int i = 0; i < index; ++i ) packed_data[ i ] = m_InternalBuffer[ i ];
 
-			return DataSourceOrderList::PackResult( packed_data, index );
+			return EventsPackResult( packed_data, index );
 		}
 
 		// .. otherwise return nothing
-		return DataSourceOrderList::PackResult( nullptr, 0 );
+		return EventsPackResult( nullptr, 0 );
 	}
 
-	DataSourceOrderList::PackedDataEventPosition
-	SF2_OrderStreaming::GetOrderListIndex( int inIndex, const unsigned char* m_Data, const int m_PackedSize ) const
-	{
-		int			  count		= 0;
-		unsigned char transpose = 0;
-		unsigned char sequence	= 0;
-
-		for ( int i = 0; i < static_cast< int >( m_PackedSize ); ++i ) {
-			if ( m_Data[ i ] < 0x80 ) {
-				sequence = m_Data[ i ];
-
-				++count;
-				if ( count == inIndex + 1 ) {
-					const unsigned char next_event = m_Data[ i + 1 ];
-					const int return_index = next_event == 0xff
-												 ? m_Data[ i + 2 ]
-												 : ( i + 1 ); // If the next event is a loop mark, the next next event
-															  // is the loop offset into the orderlist data.
-
-					return { true, static_cast< unsigned char >( return_index ), sequence, transpose };
-				}
-			} else {
-				int transpose_value = static_cast< int >( ( m_Data[ i ] & 0x7f ) - 0x20 );
-				transpose			= static_cast< unsigned int >( transpose_value & 0xff );
-			}
-		}
-
-		return { false, 0, 0, 0 };
-	}
-
-	std::pair< int, int > SF2_OrderStreaming::UnpackOrderList( DataSourceOrderList& m_Events,
-															   unsigned char*		m_Data ) const
+	EventsUnpackResult SF2_OrderEvent::Unpack( IDataSourceEvents& m_Events, uint8_t* m_Data ) const noexcept
 	{
 		int			  end_marker_index = -1;
 		int			  entry_count	   = 0;
 		unsigned char end_marker	   = 0;
 		unsigned char loop_index	   = 0;
 		// RESULTS:
-		int			  m_PackedSize{}, m_Length{};
+		unsigned	  m_PackedSize{}, m_Length{};
 		// Find end and possibly loop index
 		for ( int i = 0; i < 0x100; ++i ) {
 			unsigned char value = m_Data[ i ];
@@ -146,9 +115,7 @@ namespace Editor
 			if ( value < 0x80 ) ++entry_count;
 		}
 
-		if ( end_marker_index == -1 || entry_count >= m_Events.MaxEntryCount ) {
-			return { m_PackedSize, m_Length = 0 };
-		}
+		if ( end_marker_index == -1 || entry_count >= MAX_ORDER_EVENTS ) { return { m_PackedSize, m_Length = 0 }; }
 
 		// Set order list length
 		m_Length							= entry_count;
@@ -184,7 +151,9 @@ namespace Editor
 		return { m_PackedSize, m_Length };
 	}
 
+	EventsPackedRowPos SF2_OrderEvent::GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept {
 
+	}
 	//------------------------------------------------------------------------------------------------------------------
 	// Data format
 	//
@@ -198,8 +167,8 @@ namespace Editor
 	// a0 - bf	= Set instrument ($00 - $1f)
 	// c0 - ff	= Set command ($00 - $3f)
 	//------------------------------------------------------------------------------------------------------------------
-	DataSourceSequence::PackResult SF2_SequenceStreaming::PackSequence( const DataSourceSequence& inData,
-																		unsigned char* m_InternalBuffer ) const
+	EventsPackResult   SF2_SequenceEvent::Pack( const IDataSourceEvents& inData,
+												uint8_t*				 m_InternalBuffer ) const noexcept
 	{
 		unsigned char m_LastCommandSet	  = 0xff;
 		unsigned char m_LastInstrumentSet = 0xff;
@@ -208,20 +177,20 @@ namespace Editor
 		int			  lastDuration		  = -1;
 
 		for ( unsigned int i = 0; i < inData.GetLength(); ++i ) {
-			unsigned char instrument = inData[ i ].m_Instrument;
+			unsigned char instrument = inData[ i ].m_Param;
 			unsigned char command	 = inData[ i ].m_Command;
-			unsigned char note		 = inData[ i ].m_Note;
+			unsigned char note		 = inData[ i ].m_Payload;
 
 			// Look for next event
 			int			  duration	 = 0;
 
 			for ( unsigned int j = i + 1; j < inData.GetLength(); ++j ) {
-				if ( inData[ j ].m_Instrument != 0x80 || inData[ j ].m_Command != 0x80 ) break;
+				if ( inData[ j ].m_Param != 0x80 || inData[ j ].m_Command != 0x80 ) break;
 
 				if ( note == 0 ) {
-					if ( inData[ j ].m_Note != 0 ) break;
+					if ( inData[ j ].m_Payload != 0 ) break;
 				} else {
-					if ( inData[ j ].m_Note != 0x7e ) break;
+					if ( inData[ j ].m_Payload != 0x7e ) break;
 				}
 
 				duration++;
@@ -260,52 +229,19 @@ namespace Editor
 
 			for ( int i = 0; i < packIndex; i++ ) packed_data[ i ] = m_InternalBuffer[ i ];
 
-			return DataSourceSequence::PackResult( packed_data, packIndex );
+			return EventsPackResult( packed_data, packIndex );
 		}
 
-		return DataSourceSequence::PackResult();
+		return EventsPackResult();
 	}
 
-	DataSourceSequence::PackedDataEventPosition SF2_SequenceStreaming::GetSequenceIndex( int inEventPosition,
-																						 const unsigned char* m_Data,
-																						 const int m_PackedSize ) const
+	EventsUnpackResult SF2_SequenceEvent::Unpack( IDataSourceEvents& m_Events, uint8_t* m_Data ) const noexcept
 	{
-		int			  event_position	 = 0;
-		int			  index				 = 0;
-		unsigned char current_delta_tick = 0;
-		unsigned char current_instrument = 0;
+		int				   event_index = 0;
+		int				   duration	   = 0;
+		bool			   tie_note	   = false;
 
-		while ( index < static_cast< int >( m_PackedSize ) ) {
-			if ( event_position >= inEventPosition )
-				return { true,
-						 static_cast< unsigned char >( index ),
-						 static_cast< unsigned char >( event_position - inEventPosition ),
-						 current_delta_tick,
-						 current_instrument,
-						 m_Data[ index ] == 0x7f };
-
-			while ( m_Data[ index ] >= 0x80 ) {
-				if ( m_Data[ index ] < 0xa0 ) current_delta_tick = m_Data[ index ] & 0x0f;
-				else if ( m_Data[ index ] < 0xc0 ) current_instrument = m_Data[ index ];
-
-				++index;
-			}
-
-			event_position += ( current_delta_tick + 1 );
-			++index;
-		}
-
-		return { false, 0, 0, 0, 0, false };
-	}
-
-	DataSourceSequence::UnpackResult SF2_SequenceStreaming::UnpackSequence( DataSourceSequence& m_Events,
-																			unsigned char*		m_Data ) const
-	{
-		int								 event_index = 0;
-		int								 duration	 = 0;
-		bool							 tie_note	 = false;
-
-		DataSourceSequence::UnpackResult r{};
+		EventsUnpackResult r{};
 
 		for ( int i = 0; i < 0x100; ) {
 			unsigned char value = m_Data[ i++ ];
@@ -326,19 +262,19 @@ namespace Editor
 
 			if ( value >= 0xa0 ) // Instrument
 			{
-				m_Events[ event_index ].m_Instrument = value;
-				r.m_LastInstrumentSet				 = value & 0x1f;
-				value								 = m_Data[ i++ ];
+				m_Events[ event_index ].m_Param = value;
+				r.m_LastParameterSet			= value & 0x1f;
+				value							= m_Data[ i++ ];
 
 				FOUNDATION_ASSERT( i < 0x100 );
-			} else m_Events[ event_index ].m_Instrument = 0x80;
+			} else m_Events[ event_index ].m_Param = 0x80;
 
 			if ( value >= 0x80 ) {
 				duration = value & 0x0f;
 
 				tie_note = ( value & 0x10 ) != 0;
 
-				if ( tie_note ) m_Events[ event_index ].m_Instrument = 0x90;
+				if ( tie_note ) m_Events[ event_index ].m_Param = 0x90;
 
 				value = m_Data[ i++ ];
 
@@ -347,12 +283,12 @@ namespace Editor
 
 			FOUNDATION_ASSERT( value < 0x80 );
 
-			m_Events[ event_index++ ].m_Note = value;
+			m_Events[ event_index++ ].m_Payload = value;
 
 			for ( int j = 0; j < duration; ++j ) {
-				m_Events[ event_index ].m_Command	 = 0x80;
-				m_Events[ event_index ].m_Instrument = 0x80;
-				m_Events[ event_index ].m_Note		 = value != 0x00 ? 0x7e : 0x00;
+				m_Events[ event_index ].m_Command = 0x80;
+				m_Events[ event_index ].m_Param	  = 0x80;
+				m_Events[ event_index ].m_Payload = value != 0x00 ? 0x7e : 0x00;
 
 				event_index++;
 			}
@@ -361,6 +297,48 @@ namespace Editor
 		r.m_Length			  = event_index;
 		r.m_PackingErrorState = false;
 		return r;
+	}
+
+	bool SF2_SequenceEvent::MayPushData( IDataSourceEvents& inEvents,
+										 const DriverInfo&	m_DriverInfo,
+										 const DriverState& m_DriverState ) const noexcept
+	{
+		const unsigned short current_sequence_index_address = m_DriverInfo.GetDriverCommon().m_CurrentSequenceAddress;
+		const unsigned short current_sequence_cursor_position_address =
+			m_DriverInfo.GetDriverCommon().m_SequenceIndexAddress;
+
+		if ( m_DriverState.GetPlayState() == DriverState::PlayState::Playing ) {
+			for ( int i = 0; i < m_DriverInfo.GetMusicData().m_TrackCount; ++i ) {
+				// Read the driver inside the C64-Memory
+				const unsigned char current_sequence_index = inEvents.Peek( current_sequence_index_address + i );
+				const unsigned char current_sequence_cursor_position =
+					inEvents.Peek( current_sequence_cursor_position_address + i );
+
+				if ( current_sequence_index == inEvents.GetId() && current_sequence_cursor_position != 0 ) {
+					int change_from = 256;
+
+					for ( int j = 0; j < inEvents.GetDataSize(); ++j ) {
+						const char new_data = inEvents.GetData( j );
+						const char old_data = inEvents.Peek( inEvents.GetSourceAddress() + j );
+
+						if ( ( new_data & 0xe0 ) == 0x80 || ( old_data & 0xe0 ) == 0x80 ) {
+							if ( new_data != old_data ) {
+								change_from = j;
+								break;
+							}
+						}
+					}
+
+					return current_sequence_cursor_position < change_from;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	EventsPackedRowPos SF2_SequenceEvent::GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept {
+
 	}
 
 } // namespace Editor

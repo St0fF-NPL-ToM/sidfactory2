@@ -13,6 +13,7 @@ set( HEADERS
     edit_state.h
     editor_facility.h
     editor_types.h
+    global_constants.h
     overlay_control.h
 
     auxilarydata/auxilary_data.h
@@ -83,6 +84,7 @@ set( HEADERS
     datasources/datasource_tlist.h
     datasources/datasource_track_components.h
     datasources/idatasource.h
+    datasources/idatasource_events.h
 
     debug/debug_singleton.h
     debug/debug_views.h
@@ -104,7 +106,6 @@ set( HEADERS
     dialog/dialog_usbsid_boards.h
 
     driver/sf2_events.h
-    driver/sf2_streaming.h
     driver/driver_architecture_sidfactory2.h
     driver/driver_info.h
     driver/driver_state.h
@@ -241,7 +242,7 @@ set( SOURCES
     dialog/dialog_usbsid_boards.cpp
 
     driver/driver_architecture_sidfactory2.cpp
-    driver/sf2_streaming.cpp
+    driver/sf2_events.cpp
     driver/driver_info.cpp
     driver/driver_state.cpp
     driver/driver_utils.cpp

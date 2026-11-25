@@ -7,15 +7,47 @@
 
 #include <map>
 #include <string>
+#include <memory>
 #include <cstdint>
 
 namespace Editor
 {
+	struct EventsPackResult
+	{
+		EventsPackResult()
+			: m_Data( nullptr )
+			, m_DataLength( -1 )
+		{}
+
+		EventsPackResult( uint8_t* inData, int inDataLength )
+			: m_Data( inData )
+			, m_DataLength( inDataLength )
+		{}
+
+		std::shared_ptr< unsigned char > m_Data;
+		int								 m_DataLength;
+	};
+
+	struct EventsUnpackResult
+	{
+		unsigned m_Length;
+		unsigned m_PackedSize;
+		uint8_t	 m_LastParameterSet;
+		uint8_t	 m_LastCommandSet;
+		bool	 m_PackingErrorState;
+	};
+
+	struct EventsPackedRowPos
+	{
+		bool	m_IsValid, m_NextIsEnd;
+		uint8_t m_Results[ 4 ];
+	};
+
 
 	struct IEvent
 	{ uint8_t m_Param, m_Command, m_Payload, m_Reserved{}; }; // modern computers like sizes to be powers of 2
 
-	enum class SentinelType : uint8_t { NoSentinel, Empty, Loop, Stop, Mark };
+	enum class SentinelType : uint8_t { NoSentinel, Empty, Loop, Stop, Mark, Mark2, Mark3, Mark4 };
 	enum class Semantic : uint8_t { Parameter, Command, Payload };
 
 	struct ValueContext
@@ -70,15 +102,34 @@ namespace Editor
 		}
 	};
 
-	struct EventDefinition
+	struct IDataSourceEvents;
+	struct DriverState;
+	struct DriverInfo;
+
+	struct IEventDefinition
 	{
 		FieldDefinition					 m_Param; // basic value context and sentinels accepted by the parameter
 		FieldDefinition					 m_Command;
 		FieldDefinition					 m_Payload;
 		std::map< uint8_t, std::string > m_SentinelDisplayFormat;
 
-		SentinelType					 WhichSentinel( uint8_t v, const FieldDefinition& f ) const noexcept
+		virtual EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept = 0;
+		virtual EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept	   = 0;
+		virtual EventsPackedRowPos GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept = 0;
+		virtual bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept
+		{ return true; }
+
+		SentinelType WhichSentinel( uint8_t v, const FieldDefinition& f ) const noexcept
 		{ return f.m_Sentinels.Which( v ); }
+
+		const FieldDefinition& field( Semantic s ) const noexcept
+		{
+			switch ( s ) { // clang-format off
+				case Semantic::Parameter: 	return m_Param;
+				case Semantic::Command: 	return m_Command;
+				case Semantic::Payload: 	return m_Payload;
+			} // clang-format on
+		}
 
 		bool IsParamSentinel( SentinelType s, const IEvent& inEvent ) const noexcept
 		{ return WhichSentinel( inEvent.m_Param, m_Param ) == s; }
@@ -89,10 +140,9 @@ namespace Editor
 
 		uint8_t GetSentinel( SentinelType sen, Semantic sem ) const noexcept
 		{
-			if ( sem == Semantic::Parameter && m_Param.IsUsed() ) return m_Param.m_Sentinels.GetSentinel( sen );
-			else if ( sem == Semantic::Command && m_Command.IsUsed() ) return m_Command.m_Sentinels.GetSentinel( sen );
-			else if ( sem == Semantic::Payload && m_Payload.IsUsed() ) return m_Payload.m_Sentinels.GetSentinel( sen );
-			else return 0u;
+			const auto& f = field( sem );
+			if ( f.IsUsed() ) return f.m_Sentinels.GetSentinel( sen );
+			return 0u;
 		}
 		IEvent MakeEmptyEvent() const noexcept
 		{
@@ -106,6 +156,10 @@ namespace Editor
 			evt.m_Command = m_Command.GetDefault();
 			evt.m_Payload = m_Payload.GetDefault();
 		}
+		bool HasParameter( const IEvent& e ) const noexcept
+		{ return ( m_Param.IsUsed() && m_Param.m_Sentinels.Which( e.m_Param ) == SentinelType::NoSentinel ); }
+		bool HasCommand( const IEvent& e ) const noexcept
+		{ return ( m_Command.IsUsed() && m_Command.m_Sentinels.Which( e.m_Command ) == SentinelType::NoSentinel ); }
 		bool HasPayload( const IEvent& e ) const noexcept
 		{
 			// When does an event have a payload?  Is a loop pointer payload?
@@ -119,6 +173,16 @@ namespace Editor
 			}
 			return false;
 		}
+		const char* GetSentinelText( SentinelType t, Semantic s ) const noexcept
+		{
+			const auto sv = field( s ).m_Sentinels.GetSentinel( t );
+			if ( !m_SentinelDisplayFormat.contains( sv ) ) return nullptr;
+			else return m_SentinelDisplayFormat.at( sv ).c_str();
+		}
+		uint8_t GetMinimum( Semantic s ) const noexcept { return field( s ).m_Value.m_Minimum; }
+		uint8_t GetMaximum( Semantic s ) const noexcept { return field( s ).m_Value.m_Maximum; }
+		uint8_t GetOffset( Semantic s ) const noexcept { return field( s ).m_Value.m_Offset; }
+		uint8_t GetDefault( Semantic s ) const noexcept { return field( s ).m_Value.m_Offset; }
 	};
 
 } // namespace Editor

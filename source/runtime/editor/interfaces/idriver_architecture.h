@@ -20,7 +20,6 @@
 #pragma once
 
 #include "ievent_definition.h"
-#include "imemory_streaming.h"
 #include <vector>
 
 namespace Emulation
@@ -32,8 +31,6 @@ namespace Editor
 {
 	class DriverInfo;
 	class IDriverArchitecture
-		: public IOrderStreaming
-		, public ISequenceStreaming
 	{
 	  public:
 		struct PlayMarkerInfo
@@ -47,19 +44,20 @@ namespace Editor
 			unsigned char m_NextInstrumentAddress;
 			bool		  m_SequenceInUse;
 		};
-		IDriverArchitecture( EventDefinition&& OrderEventDef, EventDefinition&& SequenceEventDef )
+		// This way a derived CTor can do the Event-Description init. See SF2 arch for details.
+		IDriverArchitecture( IEventDefinition&& OrderEventDef, IEventDefinition&& SequenceEventDef )
 			: m_OrderEvents( OrderEventDef )
 			, m_SequenceEvents( SequenceEventDef )
 		{}
 		virtual ~IDriverArchitecture() {}
 
-		virtual void	SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )	 = 0;
-		virtual void	SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) = 0;
-		virtual void	PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
-													Emulation::CPUMemory*		   inCPUMemory,
-													const DriverInfo&			   inDriverInfo )		 = 0;
+		virtual void			SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )	 = 0;
+		virtual void			SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) = 0;
+		virtual void			PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
+															Emulation::CPUMemory*		   inCPUMemory,
+															const DriverInfo&			   inDriverInfo )		 = 0;
 
-		EventDefinition m_OrderEvents;
-		EventDefinition m_SequenceEvents;
+		const IEventDefinition& m_OrderEvents;
+		const IEventDefinition& m_SequenceEvents;
 	};
 } // namespace Editor
