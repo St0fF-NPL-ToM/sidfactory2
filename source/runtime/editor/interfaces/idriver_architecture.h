@@ -20,6 +20,7 @@
 #pragma once
 
 #include "ievent_definition.h"
+#include "ioptimizer.h"
 #include <vector>
 
 namespace Emulation
@@ -76,7 +77,9 @@ namespace Editor
 		virtual uint8_t	 GetHighestInstrumentIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
 		virtual uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
 
-		const IEventDefinition& m_OrderEvents;
-		const IEventDefinition& m_SequenceEvents;
+		virtual std::shared_ptr< IOptimizer > GetOptimizer() const noexcept { return {}; }
+
+		const IEventDefinition&				  m_OrderEvents;
+		const IEventDefinition&				  m_SequenceEvents;
 	};
 } // namespace Editor

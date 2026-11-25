@@ -10,6 +10,7 @@ set( HEADERS
     idriver_architecture.h
     ievent_definition.h
     imemory_streaming.h
+    ioptimizer.h
 )
 set( SOURCES
 )
