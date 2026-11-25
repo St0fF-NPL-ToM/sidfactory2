@@ -407,16 +407,16 @@ namespace Editor
 
 				if (transpose == 0xff)
 				{
-					entry.m_Transposition = 0xff;
-					entry.m_SequenceIndex = 0x00;
+					entry.m_Param = 0xff;
+					entry.m_Payload = 0x00;
 
 					orderlist_data_sources[i]->ComputeLength();
 
 					break;
 				}
 
-				entry.m_Transposition = 0x20 + transpose;
-				entry.m_SequenceIndex = sequence_index;
+				entry.m_Param = 0x20 + transpose;
+				entry.m_Payload = sequence_index;
 
 				if (sequence_index > max_sequence_index)
 					max_sequence_index = sequence_index;
@@ -469,15 +469,15 @@ namespace Editor
 			if (command >= 0xc0)
 			{
 				event.m_Command = command;
-				event.m_Instrument = 0x80;
+				event.m_Param = 0x80;
 			}
 			else
 			{
 				event.m_Command = 0x80;
-				event.m_Instrument = command;
+				event.m_Param = command;
 			}
 
-			event.m_Note = note;
+			event.m_Payload = note;
 
 			event_pos++;
 		}
