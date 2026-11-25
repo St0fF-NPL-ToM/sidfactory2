@@ -14,6 +14,9 @@
 #include "runtime/editor/display_state.h"
 #include "runtime/editor/components_manager.h"
 #include "utils/usercolors.h"
+#include "runtime/editor/interfaces/idriver_architecture.h"
+#include "runtime/editor/driver/driver_architecture_sidfactory2.h"
+
 #include <algorithm>
 
 using namespace Foundation;
@@ -21,25 +24,37 @@ using namespace Utility;
 
 namespace Editor
 {
-	DialogOptimize::DialogOptimize(
-		std::vector<std::shared_ptr<DataSourceOrderList>> inOrderListDataSources,
-		std::vector<std::shared_ptr<DataSourceSequence>> inSequenceDataSources,
-		std::shared_ptr<DataSourceTable> inInstrumentTableDataSource,
-		std::shared_ptr<DataSourceTable> inCommandTableDataSource,
-		int inInstrumentsTableID,
-		int inCommandsTableID,
-		const ComponentsManager& inComponentsManager,
-		DriverInfo& inDriverInfo,
-		Emulation::CPUMemory* inCPUMemory,
-		std::function<void()> inOnDoneCallback
-	)
+	DialogOptimize::DialogOptimize( std::vector< std::shared_ptr< DataSourceOrderList > > inOrderListDataSources,
+									std::vector< std::shared_ptr< DataSourceSequence > >
+										inSequenceDataSources,
+									std::shared_ptr< DataSourceTable >
+										inInstrumentTableDataSource,
+									std::shared_ptr< DataSourceTable >
+															 inCommandTableDataSource,
+									int						 inInstrumentsTableID,
+									int						 inCommandsTableID,
+									const ComponentsManager& inComponentsManager,
+									DriverInfo&				 inDriverInfo,
+									Emulation::CPUMemory*	 inCPUMemory,
+									std::function< void() >
+										inOnDoneCallback )
 		: DialogBase()
-		, m_Width(51)
-		, m_Height(24)
-		, m_OnDoneCallback(inOnDoneCallback)
+		, m_Width( 51 )
+		, m_Height( 24 )
+		, m_OnDoneCallback( inOnDoneCallback )
+		, m_DriverInfo( inDriverInfo )
+		, m_CPUMemory( inCPUMemory )
 	{
-		m_Optimizer = std::make_unique<Optimizer>(inCPUMemory, inDriverInfo, inOrderListDataSources, inSequenceDataSources, inInstrumentTableDataSource, inCommandTableDataSource, inInstrumentsTableID, inCommandsTableID);
-//		m_InstrumentData = InstrumentData::Create(0, inDriverInfo, inComponentsManager);
+		m_Optimizer = inDriverInfo.GetDriverArchitecture()->GetOptimizer( inDriverInfo );
+		// Special Case for pre-existing SF2 optimizer:
+		if ( m_Optimizer && inDriverInfo.GetDriverArchitecture()->GetID() == DriverArchitectureSidFactory2::Descriptor )
+		{
+			static_cast< Optimizer* >( m_Optimizer.get() )
+				->Initialize( inCPUMemory, inDriverInfo, inOrderListDataSources, inSequenceDataSources,
+							  inInstrumentTableDataSource, inCommandTableDataSource, inInstrumentsTableID,
+							  inCommandsTableID );
+		}
+		//		m_InstrumentData = InstrumentData::Create(0, inDriverInfo, inComponentsManager);
 	}
 
 
@@ -47,28 +62,21 @@ namespace Editor
 
 
 	void DialogOptimize::Cancel()
+	{ m_OnDoneCallback(); }
+
+
+	bool DialogOptimize::ConsumeInput( const Foundation::Keyboard& inKeyboard, const Foundation::Mouse& inMouse )
 	{
-		m_OnDoneCallback();
-	}
+		DialogBase::ConsumeInput( inKeyboard, inMouse );
 
+		for ( const auto& key_event: inKeyboard.GetKeyEventList() ) {
+			switch ( key_event ) {
+				case SDLK_ESCAPE: m_Done = true; return true;
+				case SDLK_RETURN:
+					if ( !m_ComponentsManager->IsComponentInFocus( m_ComponentButtonOk->GetComponentID() ) )
+						m_ComponentsManager->SetComponentInFocus( m_ComponentButtonOk );
 
-
-	bool DialogOptimize::ConsumeInput(const Foundation::Keyboard& inKeyboard, const Foundation::Mouse& inMouse)
-	{
-		DialogBase::ConsumeInput(inKeyboard, inMouse);
-
-		for (const auto& key_event : inKeyboard.GetKeyEventList())
-		{
-			switch (key_event)
-			{
-			case SDLK_ESCAPE:
-				m_Done = true;
-				return true;
-			case SDLK_RETURN:
-				if (!m_ComponentsManager->IsComponentInFocus(m_ComponentButtonOk->GetComponentID()))
-					m_ComponentsManager->SetComponentInFocus(m_ComponentButtonOk);
-
-				return true;
+					return true;
 			}
 		}
 
@@ -76,96 +84,95 @@ namespace Editor
 	}
 
 
-	void DialogOptimize::Refresh(const DisplayState& inDisplayState)
+	void DialogOptimize::Refresh( const DisplayState& inDisplayState )
 	{
-		DialogBase::Refresh(inDisplayState);
+		DialogBase::Refresh( inDisplayState );
 
-		int x = 2;
-		int y = 2;
+		int		   x			= 2;
+		int		   y			= 2;
 
 		const bool is_uppercase = inDisplayState.IsHexUppercase();
 
-		m_TextField->Print({ x, y }, ToColor(UserColor::DialogText), "Instruments:");
-		y = PrintUsedNumbers(x, y + 1, is_uppercase, 0x20, 0x10, m_Optimizer->GetUsedInstrumentIndices());
+		m_TextField->Print( { x, y }, ToColor( UserColor::DialogText ), "Instruments:" );
+		if ( m_Optimizer )
+			y = PrintUsedNumbers( x, y + 1, is_uppercase, 0x20, 0x10, m_Optimizer->GetUsedInstrumentIndices() );
 
-		m_TextField->Print({ x, y }, ToColor(UserColor::DialogText), "Commands:");
-		y = PrintUsedNumbers(x, y + 1, is_uppercase, 0x40, 0x10, m_Optimizer->GetUsedCommandIndices());
+		m_TextField->Print( { x, y }, ToColor( UserColor::DialogText ), "Commands:" );
+		if ( m_Optimizer )
+			y = PrintUsedNumbers( x, y + 1, is_uppercase, 0x40, 0x10, m_Optimizer->GetUsedCommandIndices() );
 
-		m_TextField->Print({ x, y }, ToColor(UserColor::DialogText), "Sequences:");
-		PrintUsedNumbers(x, y + 1, is_uppercase, 0x80, 0x10, m_Optimizer->GetUsedSequenceIndices());
+		m_TextField->Print( { x, y }, ToColor( UserColor::DialogText ), "Sequences:" );
+		if ( m_Optimizer )
+			PrintUsedNumbers( x, y + 1, is_uppercase, 0x80, 0x10, m_Optimizer->GetUsedSequenceIndices() );
 	}
 
 
-	int DialogOptimize::PrintUsedNumbers(int inX, int inY, bool inUppercase, unsigned char inNumberCount, unsigned char inNumbersPerRowCount, const std::vector<unsigned char> inUsedArray)
+	int DialogOptimize::PrintUsedNumbers( int inX, int inY, bool inUppercase, unsigned char inNumberCount,
+										  unsigned char						 inNumbersPerRowCount,
+										  const std::vector< unsigned char > inUsedArray )
 	{
-		int x = inX;
-		int y = inY;
+		int x		= inX;
+		int y		= inY;
 		int counter = 0;
 
-		for (unsigned char i = 0; i < inNumberCount; ++i)
-		{
-			Foundation::Color color = 
-				ToColor(std::find(inUsedArray.begin(), inUsedArray.end(), i) != inUsedArray.end() ? UserColor::DialogOptimizerUsed : UserColor::DialogOptimizerUnused);
-			m_TextField->PrintHexValue(x, y, color, inUppercase, i);
+		for ( unsigned char i = 0; i < inNumberCount; ++i ) {
+			Foundation::Color color =
+				ToColor( std::find( inUsedArray.begin(), inUsedArray.end(), i ) != inUsedArray.end()
+							 ? UserColor::DialogOptimizerUsed
+							 : UserColor::DialogOptimizerUnused );
+			m_TextField->PrintHexValue( x, y, color, inUppercase, i );
 
 			++counter;
 
-			if (counter >= inNumbersPerRowCount)
-			{
+			if ( counter >= inNumbersPerRowCount ) {
 				counter = 0;
-				x = inX;
+				x		= inX;
 				++y;
-			}
-			else
-				x += 3;
+			} else x += 3;
 		}
 
 		return y + 1;
 	}
 
 
-	void DialogOptimize::ActivateInternal(Foundation::Viewport* inViewport)
+	void DialogOptimize::ActivateInternal( Foundation::Viewport* inViewport )
 	{
-		m_TextField = inViewport->CreateTextField(m_Width, m_Height, 0, 0);
-		m_TextField->SetEnable(true);
+		m_TextField = inViewport->CreateTextField( m_Width, m_Height, 0, 0 );
+		m_TextField->SetEnable( true );
 		m_TextField->SetPositionToCenterOfViewport();
 
-		m_TextField->ColorAreaBackground(ToColor(UserColor::DialogBackground));
+		m_TextField->ColorAreaBackground( ToColor( UserColor::DialogBackground ) );
 
 		const std::string caption = "Optimize";
 
-		m_TextField->ColorAreaBackground(ToColor(UserColor::DialogHeader), { {0, 0}, {m_Width, 1} });
-		m_TextField->Print((m_Width - static_cast<int>(caption.length())) >> 1, 0, caption);
+		m_TextField->ColorAreaBackground( ToColor( UserColor::DialogHeader ), { { 0, 0 }, { m_Width, 1 } } );
+		m_TextField->Print( ( m_Width - static_cast< int >( caption.length() ) ) >> 1, 0, caption );
 
-		m_ComponentsManager = std::make_unique<ComponentsManager>(inViewport, m_CursorControl);
-		m_ComponentsManager->SetGroupEnabledForInput(0, true);
+		m_ComponentsManager = std::make_unique< ComponentsManager >( inViewport, m_CursorControl );
+		m_ComponentsManager->SetGroupEnabledForInput( 0, true );
 
 		const int button_width = 10;
 
-		m_ComponentButtonOk = std::make_shared<ComponentButton>(0, 0,
-			nullptr,
-			m_TextField, "Ok",
-			(m_Width - button_width) >> 1, m_Height - 2,
-			button_width,
-			[&]() { OnDone(); });
-		m_ComponentsManager->AddComponent(m_ComponentButtonOk);
+		m_ComponentButtonOk =
+			std::make_shared< ComponentButton >( 0, 0, nullptr, m_TextField, "Ok", ( m_Width - button_width ) >> 1,
+												 m_Height - 2, button_width, [ & ]() { OnDone(); } );
+		m_ComponentsManager->AddComponent( m_ComponentButtonOk );
 
-		m_ComponentsManager->SetComponentInFocus(m_ComponentButtonOk);
+		m_ComponentsManager->SetComponentInFocus( m_ComponentButtonOk );
 	}
 
 
-	void DialogOptimize::DeactivateInternal(Foundation::Viewport* inViewport)
-	{
-		inViewport->Destroy(m_TextField);
-	}
+	void DialogOptimize::DeactivateInternal( Foundation::Viewport* inViewport )
+	{ inViewport->Destroy( m_TextField ); }
 
 
 	void DialogOptimize::OnDone()
 	{
-		m_Optimizer->Execute();
+		if ( m_Optimizer )
+			m_Optimizer->Execute( m_CPUMemory );
 
 		m_Done = true;
 		m_OnDoneCallback();
 	}
 
-}
+} // namespace Editor

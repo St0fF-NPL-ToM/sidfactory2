@@ -310,7 +310,7 @@ namespace Editor
 
 		m_DriverArchitecture = [driver_type = m_Descriptor.m_DriverType]()
 		{
-			if (driver_type == DriverArchitectureSidFactory2::GetDescriptorType())
+			if (driver_type == DriverArchitectureSidFactory2::Descriptor )
 				return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureSidFactory2());
 			// if (driver_type == DriverArchitectureATMDS3::GetDescriptorType())
 			// 	return std::unique_ptr<IDriverArchitecture>(new DriverArchitectureATMDS3());

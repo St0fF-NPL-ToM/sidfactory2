@@ -40,15 +40,15 @@ namespace Editor
 	}
 
 
-	const std::vector< unsigned char >& Optimizer::GetUsedSequenceIndices() const
+	const std::vector< unsigned char >& Optimizer::GetUsedSequenceIndices() const noexcept
 	{ return m_UsedSequenceIndices; }
 
 
-	const std::vector< unsigned char >& Optimizer::GetUsedInstrumentIndices() const
+	const std::vector< unsigned char >& Optimizer::GetUsedInstrumentIndices() const noexcept
 	{ return m_UsedInstrumentIndices; }
 
 
-	const std::vector< unsigned char >& Optimizer::GetUsedCommandIndices() const
+	const std::vector< unsigned char >& Optimizer::GetUsedCommandIndices() const noexcept
 	{ return m_UsedCommandIndices; }
 
 

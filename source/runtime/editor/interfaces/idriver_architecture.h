@@ -52,6 +52,9 @@ namespace Editor
 			, m_SequenceEvents( SequenceEventDef )
 		{}
 		virtual ~IDriverArchitecture() {}
+		// Static constants cannot be made inherited. So we give it another virtual …
+		virtual uint8_t GetID() const noexcept { return 0xff; }
+
 		// Default SF2 Architectural interface
 		using CPU																			   = Emulation::CPUMemory;
 		virtual void SetEmptySequence( CPU* inCPUMemory, unsigned short inAddress )			   = 0;
@@ -77,7 +80,7 @@ namespace Editor
 		virtual uint8_t	 GetHighestInstrumentIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
 		virtual uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept				 = 0;
 
-		virtual std::shared_ptr< IOptimizer > GetOptimizer() const noexcept { return {}; }
+		virtual std::unique_ptr< IOptimizer > GetOptimizer( DriverInfo& ) const noexcept { return {}; }
 
 		const IEventDefinition&				  m_OrderEvents;
 		const IEventDefinition&				  m_SequenceEvents;

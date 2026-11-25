@@ -44,9 +44,9 @@ namespace Editor
 														int inInstrumentsTableID,
 														int inCommandsTableID );
 
-		const std::vector< unsigned char >& GetUsedSequenceIndices() const;
-		const std::vector< unsigned char >& GetUsedInstrumentIndices() const;
-		const std::vector< unsigned char >& GetUsedCommandIndices() const;
+		const std::vector< unsigned char >& GetUsedSequenceIndices() const noexcept override;
+		const std::vector< unsigned char >& GetUsedInstrumentIndices() const noexcept override;
+		const std::vector< unsigned char >& GetUsedCommandIndices() const noexcept override;
 
 		void								Execute( Emulation::CPUMemory* inCPUMemory ) override;
 

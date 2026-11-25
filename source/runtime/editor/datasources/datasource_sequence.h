@@ -32,7 +32,7 @@ namespace Editor
 							int						   inBlockSize,
 							unsigned char			   inSequenceIndex );
 		DataSourceSequence( const DataSourceSequence& inOther );
-		virtual ~DataSourceSequence();
+		virtual ~DataSourceSequence() = default;
 
 		void					operator=( const DataSourceSequence& inRhs );
 
@@ -40,7 +40,6 @@ namespace Editor
 
 		unsigned char			GetLastInstrumentSet() const { return m_LastParameterSet; }
 
-		void					SendPackedDataToBuffer( const EventsPackResult& inPackResult );
 		PackedDataEventPosition GetEventPositionInPackedData( int inEventPosition ) const;
 	};
 } // namespace Editor

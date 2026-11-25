@@ -20,11 +20,22 @@ namespace Editor
 
 	namespace ScreenEditUtils
 	{
-		void PrepareSequenceData(const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory);
-		void PrepareSequencePointers(const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory);
-		void PrepareAllOrderListsDataSources(const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory, std::vector<std::shared_ptr<DataSourceOrderList>>& outOrderListDataSources);
-		void PrepareNotSelectedSongOrderListsDataSources(const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory, std::vector<std::shared_ptr<DataSourceOrderList>>& outOrderListDataSources);
-		void PrepareSelectedSongOrderListsDataSources(const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory, std::vector<std::shared_ptr<DataSourceOrderList>>& outOrderListDataSources);
-		void PrepareSequenceDataSources(const Editor::DriverInfo& inDriverInfo, const Editor::DriverState& inDriverState, Emulation::CPUMemory& inCPUMemory, std::vector<std::shared_ptr<DataSourceSequence>>& outSequenceDataSources);
-	};
-}
+		void PrepareSequenceData( const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory );
+		void PrepareSequencePointers( const Editor::DriverInfo& inDriverInfo, Emulation::CPUMemory& inCPUMemory );
+		void PrepareAllOrderListsDataSources(
+			const Editor::DriverInfo& inDriverInfo, const Editor::DriverState& inDriverState,
+			Emulation::CPUMemory&								   inCPUMemory,
+			std::vector< std::shared_ptr< DataSourceOrderList > >& outOrderListDataSources );
+		void PrepareNotSelectedSongOrderListsDataSources(
+			const Editor::DriverInfo& inDriverInfo, const Editor::DriverState& inDriverState,
+			Emulation::CPUMemory&								   inCPUMemory,
+			std::vector< std::shared_ptr< DataSourceOrderList > >& outOrderListDataSources );
+		void PrepareSelectedSongOrderListsDataSources(
+			const Editor::DriverInfo& inDriverInfo, const Editor::DriverState& inDriverState,
+			Emulation::CPUMemory&								   inCPUMemory,
+			std::vector< std::shared_ptr< DataSourceOrderList > >& outOrderListDataSources );
+		void PrepareSequenceDataSources( const Editor::DriverInfo&	inDriverInfo,
+										 const Editor::DriverState& inDriverState, Emulation::CPUMemory& inCPUMemory,
+										 std::vector< std::shared_ptr< DataSourceSequence > >& outSequenceDataSources );
+	}; // namespace ScreenEditUtils
+} // namespace Editor
