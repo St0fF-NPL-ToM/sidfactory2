@@ -117,6 +117,9 @@ add_compile_definitions( _SF2_${PLATFORM} _BUILD_NR=${BN} )
 # Create the executable inside the project base folder
 add_subdirectory( source )
 
+Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
+target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
+
 # Installation tasks from here:
 install( DIRECTORY  resources/color_schemes
                     resources/drivers

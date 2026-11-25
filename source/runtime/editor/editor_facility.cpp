@@ -1450,7 +1450,7 @@ namespace Editor
 		converters.push_back(std::make_shared<ConverterGT>());
 		converters.push_back(std::make_shared<ConverterCC>());
 		converters.push_back(std::make_shared<ConverterMod>());
-		converters.push_back(std::make_shared<ConverterATMDS>());
+		// converters.push_back(std::make_shared<ConverterATMDS>());
 		converters.push_back(std::make_shared<ConverterNull>());
 		return converters;
 	}

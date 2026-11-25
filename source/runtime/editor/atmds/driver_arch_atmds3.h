@@ -47,21 +47,20 @@ namespace Editor
 {
 	struct ATMDS_cmd
 	{
-		enum cmd_use : unsigned char
-		{
-			none = 0,
-			uses_AD = (1 << 0),
-			uses_SR = (1 << 1),
-			uses_PP = (1 << 2),
-			uses_FP = (1 << 3),
-			uses_FF = (1 << 4),
-			uses_V = (1 << 5),
-			uses_S = (1 << 6),
-			uses_G = (1 << 7)
-		} m_uses { none };
+		enum cmd_use : unsigned char {
+			none	= 0,
+			uses_AD = ( 1 << 0 ),
+			uses_SR = ( 1 << 1 ),
+			uses_PP = ( 1 << 2 ),
+			uses_FP = ( 1 << 3 ),
+			uses_FF = ( 1 << 4 ),
+			uses_V	= ( 1 << 5 ),
+			uses_S	= ( 1 << 6 ),
+			uses_G	= ( 1 << 7 )
+		} m_uses{ none };
 		unsigned char m_AD, m_SR, m_PP, m_FP, m_FF, m_V, m_S, m_G, m_T;
-		ATMDS_cmd(cmd_use use, unsigned char val) { set(use, val); }
-		void set(cmd_use use, unsigned char val)
+		ATMDS_cmd( cmd_use use, unsigned char val ) { set( use, val ); }
+		void set( cmd_use use, unsigned char val )
 		{ // clang-format off
 			m_uses = cmd_use(use | m_uses);
 			switch( use ) {
@@ -80,25 +79,32 @@ namespace Editor
 
 	class DriverArchitectureATMDS3 final : public IDriverArchitecture
 	{
-	public:
-		void SetEmptySequence(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) override;
-		void SetEmptyOrderList(Emulation::CPUMemory* inCPUMemory, unsigned short inAddress) override;
-		void PostInitSetPlaybackIndices(std::vector<PlayMarkerInfo>& inPlayMarkerInfoList, Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo) override;
+	  public:
+		void SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
+		void SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
+		void PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
+										 Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo ) override;
 
-		DataSourceOrderList::PackResult PackOrderList(const DataSourceOrderList& inData, unsigned char* m_InternalBuffer) const override;
-		DataSourceOrderList::PackedDataEventPosition GetOrderListIndex(int inIndex, const unsigned char* m_Data, const int m_PackedSize) const override;
-		std::pair<int, int> UnpackOrderList(DataSourceOrderList& outData, unsigned char* m_Data) const override;
-		DataSourceSequence::PackResult PackSequence(const DataSourceSequence& inData, unsigned char* m_InternalBuffer) const override;
-		DataSourceSequence::PackedDataEventPosition GetSequenceIndex(int inEventPosition, const unsigned char* m_Data, const int m_PackedSize) const override;
-		DataSourceSequence::UnpackResult UnpackSequence(DataSourceSequence& outData, unsigned char* m_Data) const override;
+		DataSourceOrderList::PackResult				 PackOrderList( const DataSourceOrderList& inData,
+																	unsigned char*			   m_InternalBuffer ) const override;
+		DataSourceOrderList::PackedDataEventPosition GetOrderListIndex( int inIndex, const unsigned char* m_Data,
+																		const int m_PackedSize ) const override;
+		std::pair< int, int > UnpackOrderList( DataSourceOrderList& outData, unsigned char* m_Data ) const override;
+		bool				  IsPackedOrderEmpty( int song, int track,
+												  const Emulation::IMemoryRandomReadAccess& m_Reader ) const override;
+		DataSourceSequence::PackResult PackSequence( const DataSourceSequence& inData,
+													 unsigned char*			   m_InternalBuffer ) const override;
+		bool						   MayPushSequenceData( const DataSourceSequence& inData ) const override;
+		DataSourceSequence::PackedDataEventPosition GetSequenceIndex( int inEventPosition, const unsigned char* m_Data,
+																	  const int m_PackedSize ) const override;
+		DataSourceSequence::UnpackResult			UnpackSequence( DataSourceSequence& outData,
+																	unsigned char*		m_Data ) const override;
+		bool										IsPackedSequenceEmpty( int seq ) const override;
 
-		static unsigned char GetDescriptorType()
-		{
-			return 0xac;
-		}
+		static unsigned char						GetDescriptorType() { return 0xac; }
 
-	private:
-		void GenerateCommandTable(Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo);
-		std::vector<ATMDS_cmd> m_CreatedCommands;
+	  private:
+		void GenerateCommandTable( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
+		std::vector< ATMDS_cmd > m_CreatedCommands;
 	};
-}
+} // namespace Editor

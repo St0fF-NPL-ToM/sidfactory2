@@ -141,9 +141,6 @@ target_sources( SIDFactoryII PRIVATE ${SOURCES} )
 target_sources( SIDFactoryII PRIVATE FILE_SET headers TYPE HEADERS FILES ${HEADERS} )
 add_subdirectory( runtime )
 
-Msg( "Adding link libraries:" LIST ${SF2_LIBS} )
-target_link_libraries( SIDFactoryII PUBLIC ${SF2_LIBS} )
-
 install( TARGETS SIDFactoryII DESTINATION "${SF2_EXEC_DIR}" )
 if( LINUX )
     # Let's try a CMake-Link?
