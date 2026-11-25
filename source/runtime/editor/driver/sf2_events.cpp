@@ -151,8 +151,33 @@ namespace Editor
 		return { m_PackedSize, m_Length };
 	}
 
-	EventsPackedRowPos SF2_OrderEvent::GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept {
+	EventsPackedRowPos SF2_OrderEvent::GetRowIndex( int inIndex, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
+	{
+		int			  count		= 0;
+		unsigned char transpose = 0;
+		unsigned char sequence	= 0;
 
+		for ( int i = 0; i < static_cast< int >( m_PackedSize ); ++i ) {
+			if ( m_Data[ i ] < 0x80 ) {
+				sequence = m_Data[ i ];
+
+				++count;
+				if ( count == inIndex + 1 ) {
+					const unsigned char next_event = m_Data[ i + 1 ];
+					const int return_index = next_event == 0xff
+												 ? m_Data[ i + 2 ]
+												 : ( i + 1 ); // If the next event is a loop mark, the next next event
+															  // is the loop offset into the orderlist data.
+
+					return { true, false, static_cast< unsigned char >( return_index ), sequence, transpose };
+				}
+			} else {
+				int transpose_value = static_cast< int >( ( m_Data[ i ] & 0x7f ) - 0x20 );
+				transpose			= static_cast< unsigned int >( transpose_value & 0xff );
+			}
+		}
+
+		return { false, false, 0, 0, 0 };
 	}
 	//------------------------------------------------------------------------------------------------------------------
 	// Data format
@@ -167,8 +192,8 @@ namespace Editor
 	// a0 - bf	= Set instrument ($00 - $1f)
 	// c0 - ff	= Set command ($00 - $3f)
 	//------------------------------------------------------------------------------------------------------------------
-	EventsPackResult   SF2_SequenceEvent::Pack( const IDataSourceEvents& inData,
-												uint8_t*				 m_InternalBuffer ) const noexcept
+	EventsPackResult SF2_SequenceEvent::Pack( const IDataSourceEvents& inData,
+											  uint8_t*				   m_InternalBuffer ) const noexcept
 	{
 		unsigned char m_LastCommandSet	  = 0xff;
 		unsigned char m_LastInstrumentSet = 0xff;
@@ -337,8 +362,35 @@ namespace Editor
 		return true;
 	}
 
-	EventsPackedRowPos SF2_SequenceEvent::GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept {
+	EventsPackedRowPos
+	SF2_SequenceEvent::GetRowIndex( int inEventPosition, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
+	{
+		int			  event_position	 = 0;
+		int			  index				 = 0;
+		unsigned char current_delta_tick = 0;
+		unsigned char current_instrument = 0;
 
+		while ( index < static_cast< int >( m_PackedSize ) ) {
+			if ( event_position >= inEventPosition )
+				return { true,
+						 m_Data[ index ] == 0x7f,
+						 static_cast< unsigned char >( index ),
+						 static_cast< unsigned char >( event_position - inEventPosition ),
+						 current_delta_tick,
+						 current_instrument };
+
+			while ( m_Data[ index ] >= 0x80 ) {
+				if ( m_Data[ index ] < 0xa0 ) current_delta_tick = m_Data[ index ] & 0x0f;
+				else if ( m_Data[ index ] < 0xc0 ) current_instrument = m_Data[ index ];
+
+				++index;
+			}
+
+			event_position += ( current_delta_tick + 1 );
+			++index;
+		}
+
+		return { false, false, 0, 0, 0, 0 };
 	}
 
 } // namespace Editor
