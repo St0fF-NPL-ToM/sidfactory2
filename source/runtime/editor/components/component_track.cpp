@@ -2280,20 +2280,20 @@ namespace Editor
 		FOUNDATION_ASSERT( inValue >= 0 && inValue < 0x40 );
 
 		if ( !m_FocusModeOrderList ) {
-			auto& order_list_entry =
-				( *m_DataSourceOrderList )[ m_EventPosDetails.OrderListIndex() ];
-
-			if ( order_list_entry.m_Transposition < 0xfe ) {
+			if ( !m_DataSourceOrderList->IsEndIndex( m_EventPosDetails.OrderListIndex() ) ) {
+				const auto sequence_id = m_DataSourceOrderList->GetSequenceId( m_EventPosDetails.OrderListIndex() );
 				const std::shared_ptr< DataSourceSequence >& sequence_data_source =
-					m_DataSourceSequenceList[ order_list_entry.m_SequenceIndex ];
-				DataSourceSequence::Event& event = ( *sequence_data_source )[ m_EventPosDetails.SequenceIndex() ];
+					m_DataSourceSequenceList[ sequence_id ];
+				const auto sequence_index = m_EventPosDetails.SequenceIndex();
 
 				if ( !sequence_data_source->IsInErrorState() ) AddUndoStep();
 
-				if ( event.m_Command == 0x80 ) event.m_Command = 0xc0 | static_cast< unsigned char >( inValue );
-				else event.m_Command = 0x80;
+				auto cs = sequence_data_source->GetSentinel( sequence_index, Semantic::Command );
+				if ( cs == SentinelType::Empty )
+					sequence_data_source->SetValue( inValue, sequence_index, Semantic::Command );
+				else sequence_data_source->SetSentinel( sequence_index, SentinelType::Empty, Semantic::Command );
 
-				OnSequenceChanged( order_list_entry.m_SequenceIndex );
+				OnSequenceChanged( sequence_id );
 			}
 		}
 	}
@@ -2326,9 +2326,10 @@ namespace Editor
 		UpdateMaxEventPos();
 
 		// Pack orderlist
-		DataSourceOrderList::PackResult packed_result = m_DataSourceOrderList->Pack();
+		auto packed_result = m_DataSourceOrderList->Pack();
 
-		if ( packed_result.m_DataLength < 0x100 ) m_DataSourceOrderList->SendPackedDataToBuffer( packed_result );
+		if ( packed_result.m_DataLength < MAX_ORDER_PACKED_SIZE )
+			m_DataSourceOrderList->SendPackedDataToBuffer( packed_result );
 
 		UpdateOrderListStatusReport();
 
@@ -2340,11 +2341,11 @@ namespace Editor
 	void ComponentTrack::OnSequenceChanged( unsigned char inSequenceIndex )
 	{
 		const std::shared_ptr< DataSourceSequence >& inSequence	   = m_DataSourceSequenceList[ inSequenceIndex ];
-		DataSourceSequence::PackResult				 packed_result = inSequence->Pack();
+		auto										 packed_result = inSequence->Pack();
 
 		m_RequireRefresh										   = true;
 
-		if ( packed_result.m_DataLength < 0x100 && packed_result.m_Data != nullptr ) {
+		if ( packed_result.m_DataLength < MAX_SEQUENCE_PACKED_SIZE && packed_result.m_Data != nullptr ) {
 			inSequence->SendPackedDataToBuffer( packed_result );
 
 			m_HasDataChange = true;
@@ -2375,8 +2376,8 @@ namespace Editor
 		}
 
 		for ( unsigned int i = 0; i < m_DataSourceOrderList->GetLength(); ++i ) {
-			unsigned char sequence_index						  = ( *m_DataSourceOrderList )[ i ].m_SequenceIndex;
-			const std::shared_ptr< DataSourceSequence >& sequence = m_DataSourceSequenceList[ sequence_index ];
+			unsigned char								 sequence_index = m_DataSourceOrderList->GetSequenceId( i );
+			const std::shared_ptr< DataSourceSequence >& sequence		= m_DataSourceSequenceList[ sequence_index ];
 
 			int											 next_event_pos = event_pos + sequence->GetLength();
 
@@ -2911,20 +2912,18 @@ namespace Editor
 					return false;
 				} });
 		*/
-		m_KeyHooks.push_back(
-			{ "Key.Track.Debug", inKeyHookStore, [ & ]( KeyHookContext& inKeyHookContext )
-			  {
-				  if ( m_FocusModeOrderList )
-					  DebugSingleton::GetInstance()->SetDebugAddress( m_DataSourceOrderList->GetSourceAddress() );
-				  else {
-					  const DataSourceOrderList::Entry orderlist_entry =
-						  ( *m_DataSourceOrderList )[ m_EventPosDetails.OrderListIndex() ];
-					  DebugSingleton::GetInstance()->SetDebugAddress(
-						  m_DataSourceSequenceList[ orderlist_entry.m_SequenceIndex ]->GetSourceAddress() );
-				  }
-
-				  return true;
-			  } } );
+		m_KeyHooks.push_back( { "Key.Track.Debug", inKeyHookStore, [ & ]( KeyHookContext& inKeyHookContext )
+								{
+									if ( m_FocusModeOrderList )
+										DebugSingleton::GetInstance()->SetDebugAddress(
+											m_DataSourceOrderList->GetSourceAddress() );
+									else
+										DebugSingleton::GetInstance()->SetDebugAddress(
+											m_DataSourceSequenceList[ m_DataSourceOrderList->GetSequenceId(
+																		  m_EventPosDetails.OrderListIndex() ) ]
+												->GetSourceAddress() );
+									return true;
+								} } );
 	}
 
 
