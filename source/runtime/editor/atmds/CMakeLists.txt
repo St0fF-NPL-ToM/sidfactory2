@@ -7,10 +7,10 @@
 cmake_minimum_required( VERSION 4.2 )
 target_include_directories( SIDFactoryII PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} )
 set( HEADERS
-  #  driver_arch_atmds3.h
+    driver_arch_atmds3.h
 )
 set( SOURCES
-  #  driver_arch_atmds3.cpp
+    driver_arch_atmds3.cpp
 )
 set( OTHERS )
 target_sources( SIDFactoryII PRIVATE ${SOURCES} )

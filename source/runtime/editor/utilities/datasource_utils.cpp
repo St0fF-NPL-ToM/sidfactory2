@@ -67,7 +67,7 @@ namespace Editor
 				sequence.ClearEvent( j + 1 );
 				sequence.SetSentinel( j + 1,
 									  sequence.GetSentinel( i, Semantic::Payload ) != SentinelType::Empty
-										  ? SentinelType::Mark
+										  ? SentinelType::Legato
 										  : SentinelType::Empty,
 									  Semantic::Payload );
 				j += 2;

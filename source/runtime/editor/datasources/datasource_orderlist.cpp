@@ -2,7 +2,6 @@
 #include "foundation/base/assert.h"
 #include "runtime/editor/interfaces/idriver_architecture.h"
 #include "runtime/emulation/cpumemory.h"
-#include <cstring>
 
 namespace Editor
 {

@@ -13,14 +13,8 @@
  *
  *		So - OrderLists in ATMDS are called Tracks.  They do contain the same information, as SF2
  *		Orderlists, but also a few more.
- *		- global volume, playback speed, and current song selection, as well as a "stop" can be
- *		  encoded, which reaches far into the Commands of SF2.
- *
- *		This leads to the fact, that either this additional information gets skipped, or we'd have
- *		to keep an architecture record binding additional track commands to the following sector,
- *		thus showing that sector executing a command for volume oder speed.
- *		The concept of internal songs - ATMDS called them "tunes" - has to be finished inside SF2,
- *		first.
+ *		- global volume, playback speed, and current song selection can be encoded, which reaches
+ *		  far beyond the Commands of SF2.
  *
  *		Sectors - which would be Sequences in SF2 - on the other hand do not know about a command
  *		table.  There are a few built-in commands a Sector knows, such as:
@@ -28,10 +22,16 @@
  *		These will need to be transmogrified into some kind of a command table.
  *
  *		Command Tables:
- *		As there are 9 extra commands, 5 are "tuners", one calls a glide-fx to a target note and
- *		the other two coming from the Track (volume/speed) are Nybbles, one could make this work
- *		creating a table like:
- *		columns: bitmask | VOL | SPD | AD | SR | PP | FP | FF | GLD | TgtNote
+ *		We have 3 extra Order - Commands, of which one has kind of "Loop"-Semantics (SNG=x).
+ *		The semantics of a song change induced by a song is not implemented in SF2.  And - let's
+ *		face reality: that feature of ATMDS3 was nonsense, although I did use it quite often.
+ *		Then we have the extra Sequence Commands.  ATMDS does allow many commands in one Event.
+ *		Thus, all 5 Tuning-Commands and the Glide Command need to be "presentable" at once.  This
+ *		Glide-Command also brings its target note as a secondary parameter.
+ *
+ *		So, ATMDS3 - Architecture will provide SF2 with the following command tables:
+ *			MainCommandTable: 	columns: bitmask | AD | SR | PP | FP | FF | GLDfx | TgtNote
+ *			OrderCommandTable:	columns: bitmask | VOL | SPD | SNG
  *
  *		Internal State:	bool m_CommandsCreated
  *		Internal Func:  void GenerateCommandTable

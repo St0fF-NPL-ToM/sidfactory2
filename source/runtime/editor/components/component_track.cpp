@@ -994,8 +994,8 @@ namespace Editor
 			if ( par == SentinelType::NoSentinel )
 				m_TextField->Print( instrument_pos, value,
 									ComponentTrack::ToHexValueString( ioCurrentInstrument, inIsHexUppercase ) );
-			else if ( par == SentinelType::Mark || par == SentinelType::Empty )
-				m_TextField->Print( instrument_pos, par == SentinelType::Mark ? tie_note : empty,
+			else if ( par == SentinelType::Legato || par == SentinelType::Empty )
+				m_TextField->Print( instrument_pos, par == SentinelType::Legato ? tie_note : empty,
 									inSequence->GetSentinelText( par, Semantic::Parameter ) );
 			else m_TextField->Print( instrument_pos, inColors.m_ErrorState, "??" );
 		}
@@ -1026,7 +1026,7 @@ namespace Editor
 
 		// Note column
 		{
-			const bool	is_tie_note = par == SentinelType::Mark;
+			const bool	is_tie_note = par == SentinelType::Legato;
 
 			const Color empty		= in_error_state
 										  ? inColors.m_ErrorState
@@ -1325,10 +1325,10 @@ namespace Editor
 				const auto si = sequence_data_source->GetSentinel( i, Semantic::Payload );
 				if ( set_gate ) {
 					if ( si != SentinelType::Empty ) break;
-					sequence_data_source->SetSentinel( i, SentinelType::Mark, Semantic::Payload );
+					sequence_data_source->SetSentinel( i, SentinelType::Legato, Semantic::Payload );
 					changed = true;
 				} else {
-					if ( si != SentinelType::Mark ) break;
+					if ( si != SentinelType::Legato ) break;
 					sequence_data_source->SetSentinel( i, SentinelType::Empty, Semantic::Payload );
 					changed = true;
 				}
@@ -1354,9 +1354,9 @@ namespace Editor
 
 			SentinelType ns{ SentinelType::NoSentinel };
 			switch ( sequence_data_source->GetSentinel( sequence_index, Semantic::Parameter ) ) {
-				case SentinelType::Mark: ns = SentinelType::Empty; break;
+				case SentinelType::Legato: ns = SentinelType::Empty; break;
 				default: // another sentinel type or an instrument number should result in enabling tie
-					ns = SentinelType::Mark;
+					ns = SentinelType::Legato;
 					break;
 			}
 			sequence_data_source->SetSentinel( sequence_index, ns, Semantic::Parameter );
@@ -1372,7 +1372,7 @@ namespace Editor
 
 		const auto					 as = m_DataSourceSequenceList[ 0 ]->GetAllSentinels( Semantic::Parameter );
 		const auto					 se = as.GetSentinel( SentinelType::Empty );
-		const auto					 st = as.GetSentinel( SentinelType::Mark );
+		const auto					 st = as.GetSentinel( SentinelType::Legato );
 		const auto					 mi = m_DataSourceSequenceList[ 0 ]->GetMinimum( Semantic::Payload );
 		const auto					 ma = m_DataSourceSequenceList[ 0 ]->GetMaximum( Semantic::Payload );
 		const auto					 mu = m_DataSourceSequenceList[ 0 ]->GetOffset( Semantic::Payload );

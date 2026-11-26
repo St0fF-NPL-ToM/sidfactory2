@@ -201,7 +201,7 @@ namespace Editor
 		m_Param.m_Sentinels.m_Count			= 2;
 		m_Param.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty;
 		m_Param.m_Sentinels.m_Values[ 0 ]	= 0x80;
-		m_Param.m_Sentinels.m_Types[ 1 ]	= SentinelType::Mark;
+		m_Param.m_Sentinels.m_Types[ 1 ]	= SentinelType::Legato;
 		m_Param.m_Sentinels.m_Values[ 1 ]	= 0x90;
 		m_Command.m_Value					= { 0x00, 0x3f, 0xc0 };
 		m_Command.m_Sentinels.m_Count		= 1;
@@ -211,7 +211,7 @@ namespace Editor
 		m_Payload.m_Sentinels.m_Count		= 3;
 		m_Payload.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty; // no operation type
 		m_Payload.m_Sentinels.m_Values[ 0 ] = 0x00;
-		m_Payload.m_Sentinels.m_Types[ 1 ]	= SentinelType::Mark; // "+++"
+		m_Payload.m_Sentinels.m_Types[ 1 ]	= SentinelType::Legato; // "+++"
 		m_Payload.m_Sentinels.m_Values[ 1 ] = 0x7e;
 		m_Payload.m_Sentinels.m_Types[ 2 ]	= SentinelType::Stop;
 		m_Payload.m_Sentinels.m_Values[ 2 ] = 0x7f;
