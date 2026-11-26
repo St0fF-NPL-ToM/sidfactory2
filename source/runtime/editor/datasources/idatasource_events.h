@@ -190,6 +190,9 @@ namespace Editor
 		{ return m_EventDef.GetSentinelText( t, s ); };
 
 		const SentinelDef& GetAllSentinels( Semantic s ) const noexcept { return d( s ).m_Sentinels; }
+		// this could become necessary for other drivers, where packing a sequence takes further
+		// details of the music data set as a whole into account.
+		const DriverInfo&  GetDriverInfo() const noexcept { return m_DriverInfo; }
 
 	  protected:
 		void Clear()
