@@ -32,6 +32,7 @@ namespace Emulation
 namespace Editor
 {
 	class DriverInfo;
+
 	class IDriverArchitecture
 	{
 	  public:
@@ -47,9 +48,9 @@ namespace Editor
 			bool		  m_SequenceInUse;
 		};
 		// This way a derived CTor can do the Event-Description init. See SF2 arch for details.
-		IDriverArchitecture( IEventDefinition&& OrderEventDef, IEventDefinition&& SequenceEventDef )
-			: m_OrderEvents( OrderEventDef )
-			, m_SequenceEvents( SequenceEventDef )
+		IDriverArchitecture( IEventDefinition* inOrderDef, IEventDefinition* inSeqDef )
+			: m_OrderEvents( inOrderDef )
+			, m_SequenceEvents( inSeqDef )
 		{}
 		virtual ~IDriverArchitecture() {}
 		// Static constants cannot be made inherited. So we give it another virtual …
@@ -82,7 +83,7 @@ namespace Editor
 
 		virtual std::unique_ptr< IOptimizer > GetOptimizer( DriverInfo& ) const noexcept { return {}; }
 
-		const IEventDefinition&				  m_OrderEvents;
-		const IEventDefinition&				  m_SequenceEvents;
+		const IEventDefinition*				  m_OrderEvents;
+		const IEventDefinition*				  m_SequenceEvents;
 	};
 } // namespace Editor

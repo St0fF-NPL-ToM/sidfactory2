@@ -14,7 +14,7 @@ namespace Editor
 											unsigned short			   inSourceAddress,
 											int						   inBlockSize,
 											const unsigned char		   inSequenceIndex )
-		: IDataSourceEvents( inDriverInfo.GetDriverArchitecture()->m_SequenceEvents, inCPUMemory, inDriverInfo,
+		: IDataSourceEvents( *inDriverInfo.GetDriverArchitecture()->m_SequenceEvents, inCPUMemory, inDriverInfo,
 							 inDriverState, inSourceAddress, inBlockSize, MAX_SEQUENCE_EVENTS, inSequenceIndex )
 	{}
 

@@ -24,7 +24,7 @@ namespace Editor
 									const std::vector< std::shared_ptr< DataSourceSequence > >& inSequenceList )
 		{
 			FOUNDATION_ASSERT( inOrderList != nullptr );
-			FOUNDATION_ASSERT( inOrderListIndex < inOrderList->GetLength() );
+			FOUNDATION_ASSERT( inOrderListIndex <= inOrderList->GetLength() );
 			FOUNDATION_ASSERT( inSequenceList.size() > 0 );
 
 			unsigned int max_event_position = 0;

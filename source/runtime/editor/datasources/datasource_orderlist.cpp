@@ -9,7 +9,7 @@ namespace Editor
 	DataSourceOrderList::DataSourceOrderList( Emulation::CPUMemory* inCPUMemory, const Editor::DriverInfo& inDriverInfo,
 											  const Editor::DriverState& inDriverState, unsigned short inSourceAddress,
 											  int inBlockSize )
-		: IDataSourceEvents( inDriverInfo.GetDriverArchitecture()->m_OrderEvents, inCPUMemory, inDriverInfo,
+		: IDataSourceEvents( *inDriverInfo.GetDriverArchitecture()->m_OrderEvents, inCPUMemory, inDriverInfo,
 							 inDriverState, inSourceAddress, MAX_ORDER_EVENTS, inBlockSize )
 	{}
 

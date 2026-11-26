@@ -10,6 +10,10 @@
 
 namespace Editor
 {
+	DriverArchitectureSidFactory2::DriverArchitectureSidFactory2()
+		: IDriverArchitecture( &od, &sd )
+	{}
+
 	void DriverArchitectureSidFactory2::SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )
 	{
 		FOUNDATION_ASSERT( inCPUMemory != nullptr );

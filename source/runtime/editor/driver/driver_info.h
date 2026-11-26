@@ -8,7 +8,7 @@ namespace Utility
 {
 	class C64File;
 	class C64FileReader;
-}
+} // namespace Utility
 
 namespace Emulation
 {
@@ -18,49 +18,44 @@ namespace Emulation
 namespace Editor
 {
 	class IDriverArchitecture;
+
 	class AuxilaryDataCollection;
 
 	class DriverInfo final
 	{
-	public:
-		static const unsigned short ExpectedFileIDNumber = 0x1337;
+	  public:
+		static const unsigned short ExpectedFileIDNumber	   = 0x1337;
 		static const unsigned short AuxilaryDataPointerAddress = 0x0ffb;
 
-		enum TableType : unsigned char
-		{
-			Generic = 0x00,
-			Instruments = 0x80,
-			Commands = 0x81
-		};
+		enum TableType : unsigned char { Generic = 0x00, Instruments = 0x80, Commands = 0x81 };
 
 
-		enum HeaderBlockID : unsigned int
-		{
-			ID_Descriptor = 1,
-			ID_DriverCommon = 2,
-			ID_DriverTables = 3,
-			ID_DriverInstrumentDescriptor = 4,
-			ID_MusicData = 5,
-			ID_TableColorRules = 6,
-			ID_TableInsertDeleteRules = 7,
-			ID_TableActionRules = 8,
+		enum HeaderBlockID : unsigned int {
+			ID_Descriptor					  = 1,
+			ID_DriverCommon					  = 2,
+			ID_DriverTables					  = 3,
+			ID_DriverInstrumentDescriptor	  = 4,
+			ID_MusicData					  = 5,
+			ID_TableColorRules				  = 6,
+			ID_TableInsertDeleteRules		  = 7,
+			ID_TableActionRules				  = 8,
 			ID_DriverInstrumentDataDescriptor = 9,
 
-			_IDBlock_Count = 10,
+			_IDBlock_Count					  = 10,
 
-			ID_End = 0xff
+			ID_End							  = 0xff
 		};
 
 		struct Descriptor
 		{
-			unsigned char m_DriverType;
+			unsigned char  m_DriverType;
 			unsigned short m_DriverSize;
-			std::string m_DriverName;
+			std::string	   m_DriverName;
 			unsigned short m_DriverCodeTop;
 			unsigned short m_DriverCodeSize;
-			unsigned char m_DriverVersionMajor;
-			unsigned char m_DriverVersionMinor;
-			unsigned char m_DriverVersionRevision;
+			unsigned char  m_DriverVersionMajor;
+			unsigned char  m_DriverVersionMinor;
+			unsigned char  m_DriverVersionRevision;
 		};
 
 
@@ -76,7 +71,7 @@ namespace Editor
 
 			unsigned short m_TickCounterAddress;
 			unsigned short m_OrderListIndexAddress;
-			unsigned short m_SequenceIndexAddress;				// Index into the sequence
+			unsigned short m_SequenceIndexAddress; // Index into the sequence
 
 			unsigned short m_SequenceInUseAddress;
 			unsigned short m_CurrentSequenceAddress;
@@ -88,19 +83,19 @@ namespace Editor
 			unsigned short m_NextNoteIsTiedAddress;
 			unsigned short m_TempoCounterAddress;
 			unsigned short m_TriggerSyncAddress;
-			unsigned char m_NoteEventTriggerSyncValue;
-			unsigned char m_ReservedByte;
+			unsigned char  m_NoteEventTriggerSyncValue;
+			unsigned char  m_ReservedByte;
 			unsigned short m_ReservedWord;
 		};
 
 
 		struct MusicData
 		{
-			unsigned char m_TrackCount;
+			unsigned char  m_TrackCount;
 			unsigned short m_TrackOrderListPointersLowAddress;
 			unsigned short m_TrackOrderListPointersHighAddress;
 
-			unsigned char m_SequenceCount;
+			unsigned char  m_SequenceCount;
 			unsigned short m_SequencePointersLowAddress;
 			unsigned short m_SequencePointersHighAddress;
 
@@ -123,45 +118,38 @@ namespace Editor
 
 		struct TableDefinition
 		{
-			enum DataLayout : unsigned char
-			{
-				RowMajor = 0,
-				ColumnMajor = 1
-			};
+			enum DataLayout : unsigned char { RowMajor = 0, ColumnMajor = 1 };
 
-			enum Properties : unsigned char
-			{
-				EnableInsertDelete = 0x01,
-				LayoutAddVertically = 0x02,
+			enum Properties : unsigned char {
+				EnableInsertDelete		= 0x01,
+				LayoutAddVertically		= 0x02,
 				IndexAsContinuousMemory = 0x04
 			};
 
-			unsigned char m_Type;						// Type of table
-			unsigned char m_ID;							// Identifier for the table and rule targeting
-			unsigned char m_TextFieldSize;				// Size of the text field added to the table
-			std::string m_Name;							// The readable name of the table
+			unsigned char  m_Type;			// Type of table
+			unsigned char  m_ID;			// Identifier for the table and rule targeting
+			unsigned char  m_TextFieldSize; // Size of the text field added to the table
+			std::string	   m_Name;			// The readable name of the table
 
-			DataLayout m_DataLayout;					// Data layout in the emulated memory
+			DataLayout	   m_DataLayout; // Data layout in the emulated memory
 
-			bool m_PropertyEnabledInsertDelete;			// Support of insert and delete editing
-			bool m_PropertyLayoutVertically;			// Layout vertically relative to last table added
-			bool m_PropertyIndexAsContinuousMemory;		// Index the table as if it were continuous memory
+			bool		   m_PropertyEnabledInsertDelete;	  // Support of insert and delete editing
+			bool		   m_PropertyLayoutVertically;		  // Layout vertically relative to last table added
+			bool		   m_PropertyIndexAsContinuousMemory; // Index the table as if it were continuous memory
 
-			unsigned char m_InsertDeleteRuleID;			// ID of rule to modify other tables when inserting or deleting
-			unsigned char m_EnterActionRuleID;			// ID of action execution when hitting enter while editing this table
-			unsigned char m_ColorRuleID;				// ID of the color rules group to apply
+			unsigned char  m_InsertDeleteRuleID; // ID of rule to modify other tables when inserting or deleting
+			unsigned char  m_EnterActionRuleID;	 // ID of action execution when hitting enter while editing this table
+			unsigned char  m_ColorRuleID;		 // ID of the color rules group to apply
 
-			unsigned short m_Address;					// Address of data
-			unsigned short m_ColumnCount;				// Number of columns in this table
-			unsigned short m_RowCount;					// Number of rows in this table
+			unsigned short m_Address;	  // Address of data
+			unsigned short m_ColumnCount; // Number of columns in this table
+			unsigned short m_RowCount;	  // Number of rows in this table
 
-			unsigned char m_VisibleRowCount;			// Number of visible rows on the table
+			unsigned char  m_VisibleRowCount; // Number of visible rows on the table
 		};
 
 		struct InstrumentDescriptor
-		{
-			std::vector<std::string> m_CellDescription;
-		};
+		{ std::vector< std::string > m_CellDescription; };
 
 		struct TableColorRule
 		{
@@ -172,9 +160,7 @@ namespace Editor
 		};
 
 		struct TableColorRules
-		{
-			std::vector<TableColorRule> m_Rules;
-		};
+		{ std::vector< TableColorRule > m_Rules; };
 
 		struct TableInsertDeleteRule
 		{
@@ -186,9 +172,7 @@ namespace Editor
 		};
 
 		struct TableInsertDeleteRules
-		{
-			std::vector<TableInsertDeleteRule> m_Rules;
-		};
+		{ std::vector< TableInsertDeleteRule > m_Rules; };
 
 		struct TableActionRule
 		{
@@ -203,108 +187,109 @@ namespace Editor
 		};
 
 		struct TableActionRules
-		{
-			std::vector<TableActionRule> m_Rules;
-		};
+		{ std::vector< TableActionRule > m_Rules; };
 
 		struct InstrumentDataPointerDescription
 		{
-			unsigned char m_TableID;								// ID of the table being pointed to
-			unsigned char m_InstrumentDataPointerPosition;			// Position of the data entry holding the index into the table
-			unsigned char m_PointerAndValue;						// Value to and with the pointer value to get the real pointer into the table
-			unsigned char m_InstrumentDataConditionalValuePosition;	// Position of the data entry holding a conditional value for the table pointer to be included
+			unsigned char m_TableID; // ID of the table being pointed to
+			unsigned char
+				m_InstrumentDataPointerPosition; // Position of the data entry holding the index into the table
+			unsigned char
+				m_PointerAndValue; // Value to and with the pointer value to get the real pointer into the table
+			unsigned char m_InstrumentDataConditionalValuePosition; // Position of the data entry holding a conditional
+																	// value for the table pointer to be included
 			unsigned char m_ConditionValueAndValue;					// Value to and to the condition value
-			unsigned char m_ConditionEqualityValue;					// The final result of the conditional value and with the and value should equal this for the data pointer to be included.
-			unsigned char m_TableDataType;							// Type 0: single entry, Type 1: looping data with jump markers
-			unsigned char m_TableJumpMarkerValuePosition;			// Position in the table to look for the jump marker value
-			unsigned char m_TableJumpMarkerValue;					// Jump marker value
-			unsigned char m_TableJumpDestinationIndexPosition;		// Position in the table to look for the destination index when jumping
+			unsigned char m_ConditionEqualityValue; // The final result of the conditional value and with the and value
+													// should equal this for the data pointer to be included.
+			unsigned char m_TableDataType;			// Type 0: single entry, Type 1: looping data with jump markers
+			unsigned char m_TableJumpMarkerValuePosition; // Position in the table to look for the jump marker value
+			unsigned char m_TableJumpMarkerValue;		  // Jump marker value
+			unsigned char m_TableJumpDestinationIndexPosition; // Position in the table to look for the destination
+															   // index when jumping
 		};
 
 		struct InstrumentDataDescription
-		{
-			std::vector<InstrumentDataPointerDescription> m_InstrumentDataPointerDescriptions;
-		};
+		{ std::vector< InstrumentDataPointerDescription > m_InstrumentDataPointerDescriptions; };
 
 		DriverInfo();
 		~DriverInfo();
 
-		void Parse(const Utility::C64File& inFile);
-		bool IsValid() const;
-		bool IsParticalyValid() const;
+		void										 Parse( const Utility::C64File& inFile );
+		bool										 IsValid() const;
+		bool										 IsParticalyValid() const;
 
-		const Descriptor& GetDescriptor() const;
-		const DriverCommon& GetDriverCommon() const;
-		const MusicData& GetMusicData() const;
-		const std::vector<TableDefinition>& GetTableDefinitions() const;
-		const std::vector<TableColorRules>& GetTableColorRules() const;
-		const std::vector<TableInsertDeleteRules>& GetTableInsertDeleteRules() const;
-		const std::vector<TableActionRules>& GetTableActionRules() const;
-		const InstrumentDataDescription& GetInstrumentDataDescription() const;
+		const Descriptor&							 GetDescriptor() const;
+		const DriverCommon&							 GetDriverCommon() const;
+		const MusicData&							 GetMusicData() const;
+		const std::vector< TableDefinition >&		 GetTableDefinitions() const;
+		const std::vector< TableColorRules >&		 GetTableColorRules() const;
+		const std::vector< TableInsertDeleteRules >& GetTableInsertDeleteRules() const;
+		const std::vector< TableActionRules >&		 GetTableActionRules() const;
+		const InstrumentDataDescription&			 GetInstrumentDataDescription() const;
 
-		unsigned short GetTopAddress() const;
+		unsigned short								 GetTopAddress() const;
 
-		IDriverArchitecture* const GetDriverArchitecture() const;
+		IDriverArchitecture* const				   GetDriverArchitecture() const;
 
-		bool HasFoundHeaderBlock(HeaderBlockID inBlockID) const;
-		bool HasParsedHeaderBlock(HeaderBlockID inBlockID) const;
+		bool									   HasFoundHeaderBlock( HeaderBlockID inBlockID ) const;
+		bool									   HasParsedHeaderBlock( HeaderBlockID inBlockID ) const;
 
-		bool HasEditData() const;
+		bool									   HasEditData() const;
 
-		AuxilaryDataCollection& GetAuxilaryDataCollection();
-		const AuxilaryDataCollection& GetAuxilaryDataCollection() const;
+		AuxilaryDataCollection&					   GetAuxilaryDataCollection();
+		const AuxilaryDataCollection&			   GetAuxilaryDataCollection() const;
 
 		const MusicDataMetaDataEmulationAddresses& GetMusicDataMetaDataEmulationAddresses() const;
-		void RefreshMusicData(Emulation::CPUMemory& inCPUMemory);
+		void									   RefreshMusicData( Emulation::CPUMemory& inCPUMemory );
 
-	private:
-		bool HasParsedRequiredBlocks() const;
+	  private:
+		bool								   HasParsedRequiredBlocks() const;
 
-		void SetHasFoundHeaderBlock(HeaderBlockID inBlockID);
-		void SetHasParsedHeaderBlock(HeaderBlockID inBlockID);
+		void								   SetHasFoundHeaderBlock( HeaderBlockID inBlockID );
+		void								   SetHasParsedHeaderBlock( HeaderBlockID inBlockID );
 
-		bool ParseHeader(const Utility::C64File& inFile);
+		bool								   ParseHeader( const Utility::C64File& inFile );
 
-		void ParseDescriptor(Utility::C64FileReader& inReader);
-		void ParseDriverCommon(Utility::C64FileReader& inReader);
-		void ParseDriverTables(Utility::C64FileReader& inReader);
-		void ParseDriverInstrumentDescriptor(Utility::C64FileReader& inReader);
-		void ParseMusicData(Utility::C64FileReader& inReader);
-		void ParseTableColorRules(Utility::C64FileReader& inReader);
-		void ParseTableInsDelRules(Utility::C64FileReader& inReader);
-		void ParseTableActionRules(Utility::C64FileReader& inReader);
-		void ParseDriverInstrumentDataDescriptor(Utility::C64FileReader& inReader);
+		void								   ParseDescriptor( Utility::C64FileReader& inReader );
+		void								   ParseDriverCommon( Utility::C64FileReader& inReader );
+		void								   ParseDriverTables( Utility::C64FileReader& inReader );
+		void								   ParseDriverInstrumentDescriptor( Utility::C64FileReader& inReader );
+		void								   ParseMusicData( Utility::C64FileReader& inReader );
+		void								   ParseTableColorRules( Utility::C64FileReader& inReader );
+		void								   ParseTableInsDelRules( Utility::C64FileReader& inReader );
+		void								   ParseTableActionRules( Utility::C64FileReader& inReader );
+		void								   ParseDriverInstrumentDataDescriptor( Utility::C64FileReader& inReader );
 
-		bool ParseAuxilaryData(const Utility::C64File& inFile);
+		bool								   ParseAuxilaryData( const Utility::C64File& inFile );
 
-		bool m_IsValid;
-		bool m_FoundRequiredTableInstruments;
-		bool m_FoundRequiredTableCommands;
-		bool m_HasEditData;
+		bool								   m_IsValid;
+		bool								   m_FoundRequiredTableInstruments;
+		bool								   m_FoundRequiredTableCommands;
+		bool								   m_HasEditData;
 
-		unsigned short m_TopAddress;
+		unsigned short						   m_TopAddress;
 
-		unsigned int m_FoundDescriptorBlocks;
-		unsigned int m_ParsedDescriptorBlocks;
+		unsigned int						   m_FoundDescriptorBlocks;
+		unsigned int						   m_ParsedDescriptorBlocks;
 
-		std::unique_ptr<IDriverArchitecture> m_DriverArchitecture;
+		std::unique_ptr< IDriverArchitecture > m_DriverArchitecture;
 
-		Descriptor m_Descriptor;
-		DriverCommon m_DriverCommon;
-		MusicData m_MusicData;
+		Descriptor							   m_Descriptor;
+		DriverCommon						   m_DriverCommon;
+		MusicData							   m_MusicData;
 
-		std::vector<TableDefinition> m_TableDefinitions;
-		std::vector<TableColorRules> m_TableColorRules;
-		std::vector<TableInsertDeleteRules> m_TableInsDelRules;
-		std::vector<TableActionRules> m_TableActionRules;
+		std::vector< TableDefinition >		   m_TableDefinitions;
+		std::vector< TableColorRules >		   m_TableColorRules;
+		std::vector< TableInsertDeleteRules >  m_TableInsDelRules;
+		std::vector< TableActionRules >		   m_TableActionRules;
 
-		InstrumentDataDescription m_InstrumentDataDescription;
+		InstrumentDataDescription			   m_InstrumentDataDescription;
 
-		std::unique_ptr<AuxilaryDataCollection> m_AuxilaryDataCollection;
+		std::unique_ptr< AuxilaryDataCollection > m_AuxilaryDataCollection;
 
-		InstrumentDescriptor m_InstrumentDescriptor;
+		InstrumentDescriptor					  m_InstrumentDescriptor;
 
 		// Data required to reallocated sequences when adding and removing songs
-		MusicDataMetaDataEmulationAddresses m_MusicDataMetaDataEmulationAddresses;
+		MusicDataMetaDataEmulationAddresses		  m_MusicDataMetaDataEmulationAddresses;
 	};
-}
+} // namespace Editor

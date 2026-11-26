@@ -107,7 +107,7 @@ namespace Editor
 		EventsUnpackResult Unpack()
 		{
 			Clear();
-			auto ur				= m_EventDef.Unpack( *this, m_InternalBuffer );
+			auto ur				= m_EventDef.Unpack( *this, m_Data );
 			m_Length			= ur.m_Length;
 			m_PackedSize		= ur.m_PackedSize;
 			m_LastParameterSet	= ur.m_LastParameterSet;

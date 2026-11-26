@@ -14,8 +14,6 @@ namespace Emulation
 
 namespace Editor
 {
-	class IDriverArchitecture;
-
 	class DataSourceOrderList : public IDataSourceEvents
 	{
 	  public:

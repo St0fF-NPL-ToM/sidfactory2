@@ -5,6 +5,7 @@
  *  Here, we implement how a driver declares what types of events it is able to consume.
  */
 
+#include <cstring>
 #include <map>
 #include <string>
 #include <memory>
@@ -61,12 +62,19 @@ namespace Editor
 			if ( m_Minimum >= m_Maximum ) return true; // on unused fields any value is valid.
 			return ( m_Minimum + m_Offset <= value && m_Maximum + m_Offset >= value );
 		}
+		ValueContext()						= default;
+		ValueContext( const ValueContext& ) = default;
+		ValueContext( int16_t a, int16_t b, int16_t c )
+			: m_Minimum( a )
+			, m_Maximum( b )
+			, m_Offset( c )
+		{}
 	};
 
 	struct SentinelDef
 	{
-		uint8_t		 m_Count, m_Values[ 7 ];
-		SentinelType m_Reserved, m_Types[ 7 ];
+		uint8_t		 m_Count{}, m_Values[ 7 ]{};
+		SentinelType m_Reserved{}, m_Types[ 7 ]{};
 
 		// let definition check if value is a sentinel
 		SentinelType Which( uint8_t value ) const noexcept
@@ -86,12 +94,15 @@ namespace Editor
 			if ( auto sp = SentinelPos( sen ); sp != -1 ) return m_Values[ sp ];
 			return 0u;
 		}
+		SentinelDef() = default;
+		SentinelDef( const SentinelDef& o ) { *this = o; }
+		SentinelDef& operator=( const SentinelDef& o ) { return memcpy( this, &o, sizeof( SentinelDef ) ), *this; }
 	};
 
 	struct FieldDefinition
 	{
-		ValueContext m_Value;	  // Context of the basic field value
-		SentinelDef	 m_Sentinels; // Set of allowed sentinels in this field
+		ValueContext m_Value{};		// Context of the basic field value
+		SentinelDef	 m_Sentinels{}; // Set of allowed sentinels in this field
 		// For checking if this field actually participates …
 		bool		 IsUsed() const noexcept { return m_Value.m_Minimum < m_Value.m_Maximum; }
 		uint8_t		 GetDefault() const noexcept
@@ -100,6 +111,8 @@ namespace Editor
 				return m_Sentinels.m_Values[ esp ];
 			else return m_Value.m_Default != INT16_MIN ? m_Value.m_Default : m_Value.m_Offset;
 		}
+		FieldDefinition()						  = default;
+		FieldDefinition( const FieldDefinition& ) = default;
 	};
 
 	struct IDataSourceEvents;
@@ -119,6 +132,7 @@ namespace Editor
 		virtual bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept
 		{ return true; }
 
+		// Functionality provided by "The Event Definition Interface":
 		SentinelType WhichSentinel( uint8_t v, const FieldDefinition& f ) const noexcept
 		{ return f.m_Sentinels.Which( v ); }
 
@@ -127,8 +141,9 @@ namespace Editor
 			switch ( s ) { // clang-format off
 				case Semantic::Parameter: 	return m_Param;
 				case Semantic::Command: 	return m_Command;
-				case Semantic::Payload: 	return m_Payload;
-			} // clang-format on
+				case Semantic::Payload:		return m_Payload;
+			} // clang-format on … the following is never reached …
+			return m_Payload; // but another return is necessary to silence gcc/clang
 		}
 
 		bool IsParamSentinel( SentinelType s, const IEvent& inEvent ) const noexcept

@@ -9,9 +9,7 @@ namespace Editor
 	class DriverArchitectureSidFactory2 final : public IDriverArchitecture
 	{
 	  public:
-		DriverArchitectureSidFactory2()
-			: IDriverArchitecture( SF2_OrderEvent(), SF2_SequenceEvent() )
-		{}
+		DriverArchitectureSidFactory2();
 		static constexpr uint8_t Descriptor = 0x00;
 		uint8_t					 GetID() const noexcept override { return Descriptor; }
 		void SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
@@ -33,5 +31,9 @@ namespace Editor
 
 		std::unique_ptr< IOptimizer > GetOptimizer( DriverInfo& di ) const noexcept override
 		{ return std::make_unique< Optimizer >( di ); }
+
+	  private:
+		SF2_OrderEvent	  od;
+		SF2_SequenceEvent sd;
 	};
 } // namespace Editor
