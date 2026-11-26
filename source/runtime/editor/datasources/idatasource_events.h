@@ -171,7 +171,7 @@ namespace Editor
 		uint8_t		GetDefault( Semantic s ) const noexcept { return m_EventDef.GetDefault( s ); }
 
 		// Clear a single event
-		void		ClearEvent( int inIndex ) { m_EventDef.ClearEvent( m_Events[ inIndex ] ); }
+		Event&		ClearEvent( int inIndex ) { return m_EventDef.ClearEvent( m_Events[ inIndex ] ); }
 		// Clear the whole data source
 		void		ClearEvents() { Clear(); }
 

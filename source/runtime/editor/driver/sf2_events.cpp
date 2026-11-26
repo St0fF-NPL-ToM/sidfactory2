@@ -165,7 +165,7 @@ namespace Editor
 		return { m_PackedSize, m_Length };
 	}
 
-	EventsPackedRowPos SF2_OrderEvent::GetRowIndex( int inIndex, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
+	EventsPackedRowPos SF2_OrderEvent::GetNextIndexPackedPosition( int inIndex, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
 	{
 		int			  count		= 0;
 		unsigned char transpose = 0;
@@ -402,7 +402,7 @@ namespace Editor
 	}
 
 	EventsPackedRowPos
-	SF2_SequenceEvent::GetRowIndex( int inEventPosition, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
+	SF2_SequenceEvent::GetNextIndexPackedPosition( int inEventPosition, uint8_t* m_Data, uint16_t m_PackedSize ) const noexcept
 	{
 		int			  event_position	 = 0;
 		int			  index				 = 0;

@@ -69,6 +69,9 @@ namespace Editor
 			, m_Maximum( b )
 			, m_Offset( c )
 		{}
+		ValueContext( int16_t a, int16_t b, int16_t c, int16_t d )
+			: ValueContext( a, b, c )
+		{ m_Default = d; }
 	};
 
 	struct SentinelDef
@@ -128,7 +131,8 @@ namespace Editor
 
 		virtual EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept = 0;
 		virtual EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept	   = 0;
-		virtual EventsPackedRowPos GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept = 0;
+		virtual EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
+															   uint16_t inDataSize ) const noexcept				   = 0;
 		virtual bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept
 		{ return true; }
 
@@ -165,11 +169,12 @@ namespace Editor
 			ClearEvent( ev );
 			return ev;
 		}
-		void ClearEvent( IEvent& evt ) const noexcept
+		IEvent& ClearEvent( IEvent& evt ) const noexcept
 		{
 			evt.m_Param	  = m_Param.GetDefault();
 			evt.m_Command = m_Command.GetDefault();
 			evt.m_Payload = m_Payload.GetDefault();
+			return evt;
 		}
 		bool HasParameter( const IEvent& e ) const noexcept
 		{ return ( m_Param.IsUsed() && m_Param.m_Sentinels.Which( e.m_Param ) == SentinelType::NoSentinel ); }

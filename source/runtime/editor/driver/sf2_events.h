@@ -12,7 +12,7 @@ namespace Editor
 		SF2_OrderEvent();
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
-		EventsPackedRowPos GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
 	};
 
 
@@ -22,7 +22,7 @@ namespace Editor
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
 		bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept override;
-		EventsPackedRowPos GetRowIndex( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
 	};
 
 } // namespace Editor

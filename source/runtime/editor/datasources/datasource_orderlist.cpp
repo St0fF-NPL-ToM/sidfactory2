@@ -73,7 +73,7 @@ namespace Editor
 
 	DataSourceOrderList::PackedDataEventPosition DataSourceOrderList::GetIndexInPackedData( int inIndex ) const
 	{
-		auto resa = m_EventDef.GetRowIndex( inIndex, m_Data, m_PackedSize );
+		auto resa = m_EventDef.GetNextIndexPackedPosition( inIndex, m_Data, m_PackedSize );
 		return { resa.m_IsValid, resa.m_Results[ 0 ], resa.m_Results[ 1 ] };
 	}
 

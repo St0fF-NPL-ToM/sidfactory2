@@ -42,69 +42,106 @@
  *
  */
 #include "runtime/editor/interfaces/idriver_architecture.h"
+#include "runtime/editor/interfaces/ievent_definition.h"
 
 namespace Editor
 {
-	struct ATMDS_cmd
+	enum class ATMDS3_CMD : uint8_t {
+		none	= 0,
+		uses_AD = ( 1 << 0 ),
+		uses_SR = ( 1 << 1 ),
+		uses_PP = ( 1 << 2 ),
+		uses_FP = ( 1 << 3 ),
+		uses_FF = ( 1 << 4 ),
+		uses_G	= ( 1 << 5 ),
+		uses_V	= ( 1 << 6 ),
+		uses_S	= ( 1 << 7 )
+	};
+
+	struct ATMDS3TrackCmd
 	{
-		enum cmd_use : unsigned char {
-			none	= 0,
-			uses_AD = ( 1 << 0 ),
-			uses_SR = ( 1 << 1 ),
-			uses_PP = ( 1 << 2 ),
-			uses_FP = ( 1 << 3 ),
-			uses_FF = ( 1 << 4 ),
-			uses_V	= ( 1 << 5 ),
-			uses_S	= ( 1 << 6 ),
-			uses_G	= ( 1 << 7 )
-		} m_uses{ none };
-		unsigned char m_AD, m_SR, m_PP, m_FP, m_FF, m_V, m_S, m_G, m_T;
-		ATMDS_cmd( cmd_use use, unsigned char val ) { set( use, val ); }
-		void set( cmd_use use, unsigned char val )
+		ATMDS3_CMD m_Uses{ ATMDS3_CMD::none };
+		uint8_t	   m_VOL, m_SPD;
+		ATMDS3TrackCmd( ATMDS3_CMD use, unsigned char val ) { set( use, val ); }
+		void set( ATMDS3_CMD use, unsigned char val )
 		{ // clang-format off
-			m_uses = cmd_use(use | m_uses);
 			switch( use ) {
-				case uses_AD:	m_AD = val;	break;
-				case uses_SR:	m_SR = val;	break;
-				case uses_PP:	m_PP = val;	break;
-				case uses_FP:	m_FP = val;	break;
-				case uses_FF:	m_FF = val;	break;
-				case uses_V:	m_V  = val; break;
-				case uses_S:	m_S  = val; break;
-				case uses_G:	m_G  = val; break;
-				case none:		m_T  = val; break;	// abusing cmd "none" for glide target setting!
+				case ATMDS3_CMD::uses_V:	m_VOL = val;	break;
+				case ATMDS3_CMD::uses_S:	m_SPD = val;	break;
+				default: return;								// Wrong values are ignored!
 			}
+			m_Uses = ATMDS3_CMD( int(use) + int(m_Uses) );
 		} // clang-format on
+	};
+
+	struct ATMDS3SectorCmd
+	{
+		ATMDS3_CMD m_Uses{ ATMDS3_CMD::none };
+		uint8_t	   m_AD, m_SR, m_PP, m_FP, m_FF, m_G, m_T;
+		ATMDS3SectorCmd( ATMDS3_CMD use, unsigned char val ) { set( use, val ); }
+		void set( ATMDS3_CMD use, unsigned char val )
+		{ // clang-format off
+			switch( use ) {
+				case ATMDS3_CMD::uses_AD:	m_AD = val;	break;
+				case ATMDS3_CMD::uses_SR:	m_SR = val;	break;
+				case ATMDS3_CMD::uses_PP:	m_PP = val;	break;
+				case ATMDS3_CMD::uses_FP:	m_FP = val;	break;
+				case ATMDS3_CMD::uses_FF:	m_FF = val;	break;
+				case ATMDS3_CMD::uses_G:	m_G  = val; break;
+				case ATMDS3_CMD::none:		m_T  = val; break;	// abusing cmd "none" for glide target setting!
+				default: return;								// Wrong values are ignored!
+			}
+			m_Uses = ATMDS3_CMD( int(use) + int(m_Uses) );
+		} // clang-format on
+	};
+
+	struct ATMDS3TrackEvents : public IEventDefinition
+	{
+		ATMDS3TrackEvents();
+		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
+		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+	};
+	struct ATMDS3SectorEvents : public IEventDefinition
+	{
+		ATMDS3SectorEvents();
+		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
+		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+		bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept override;
 	};
 
 	class DriverArchitectureATMDS3 final : public IDriverArchitecture
 	{
+		friend class ATMDS3TrackEvents;
+		friend class ATMDS3SectorEvents;
 	  public:
-		void SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
-		void SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
+		// Static constants cannot be made inherited. So we give it another virtual …
+		DriverArchitectureATMDS3();
+		virtual ~DriverArchitectureATMDS3() = default;
+
+		uint8_t GetID() const noexcept override { return 0xac; }
+
+		void	SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
+		void	SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
 		void PostInitSetPlaybackIndices( std::vector< PlayMarkerInfo >& inPlayMarkerInfoList,
 										 Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo ) override;
 
-		DataSourceOrderList::PackResult				 PackOrderList( const DataSourceOrderList& inData,
-																	unsigned char*			   m_InternalBuffer ) const override;
-		DataSourceOrderList::PackedDataEventPosition GetOrderListIndex( int inIndex, const unsigned char* m_Data,
-																		const int m_PackedSize ) const override;
-		std::pair< int, int > UnpackOrderList( DataSourceOrderList& outData, unsigned char* m_Data ) const override;
-		bool				  IsPackedOrderEmpty( int song, int track,
-												  const Emulation::IMemoryRandomReadAccess& m_Reader ) const override;
-		DataSourceSequence::PackResult PackSequence( const DataSourceSequence& inData,
-													 unsigned char*			   m_InternalBuffer ) const override;
-		bool						   MayPushSequenceData( const DataSourceSequence& inData ) const override;
-		DataSourceSequence::PackedDataEventPosition GetSequenceIndex( int inEventPosition, const unsigned char* m_Data,
-																	  const int m_PackedSize ) const override;
-		DataSourceSequence::UnpackResult			UnpackSequence( DataSourceSequence& outData,
-																	unsigned char*		m_Data ) const override;
-		bool										IsPackedSequenceEmpty( int seq ) const override;
-
-		static unsigned char						GetDescriptorType() { return 0xac; }
+		std::vector< uint16_t > GetOrderListsLength( DRIVER_UTIL_PARAMS ) const noexcept override;
+		std::vector< int >		GetSequenceUsageCount( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint16_t				GetEndOfMusicDataAddress( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint16_t GetSequenceLength( uint8_t inSequenceIndex, DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetFirstUnusedSequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetFirstEmptySequenceIndex( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestSequenceIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestInstrumentIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
+		uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
 
 	  private:
-		void GenerateCommandTable( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
-		std::vector< ATMDS_cmd > m_CreatedCommands;
+		void GenerateCommandTables( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
+		std::vector< ATMDS3TrackCmd >  m_OrderCommands;
+		std::vector< ATMDS3SectorCmd > m_SequenceCommands;
+		ATMDS3TrackEvents			   m_TrackEventDef;
+		ATMDS3SectorEvents			   m_SectorEventDef;
 	};
 } // namespace Editor

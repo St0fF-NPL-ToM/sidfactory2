@@ -45,7 +45,7 @@ namespace Editor
 	DataSourceSequence::PackedDataEventPosition
 	DataSourceSequence::GetEventPositionInPackedData( int inEventPosition ) const
 	{
-		auto r = m_EventDef.GetRowIndex( inEventPosition, m_Data, m_PackedSize );
+		auto r = m_EventDef.GetNextIndexPackedPosition( inEventPosition, m_Data, m_PackedSize );
 		return { r.m_IsValid, r.m_Results[ 0 ], r.m_Results[ 1 ], r.m_Results[ 2 ], r.m_Results[ 3 ], r.m_NextIsEnd };
 	}
 } // namespace Editor
