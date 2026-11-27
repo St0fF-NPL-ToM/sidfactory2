@@ -63,6 +63,9 @@ set( CMAKE_CXX_STANDARD 23 )                  # some libraries by now require mo
 set( CMAKE_CXX_STANDARD_REQUIRED absolutely ) # LOL coding humor. A string evaluates true.
 Msg( "current Version: ${_bd}.${_id} → CMake translation: ${PROJECT_VERSION}" )
 
+# project settings - none for now ...
+include( resources/KickAssembler.cmake )
+
 #[[ Preparation for installation differences:
     -----------------------------------------
     - platform-options / preprocessor definitions
