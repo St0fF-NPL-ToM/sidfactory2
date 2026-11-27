@@ -41,6 +41,7 @@
  *		range, e.g. ending at $4000.  In "my DDK" I just set it to ($4000-10*128), ColumnMajor.
  *
  */
+#include "ATMDS3_Constants.h"
 #include "runtime/editor/interfaces/idriver_architecture.h"
 #include "runtime/editor/interfaces/ievent_definition.h"
 
@@ -60,17 +61,16 @@ namespace Editor
 
 	struct ATMDS3TrackCmd
 	{
-		ATMDS3_CMD m_Uses{ ATMDS3_CMD::none };
-		uint8_t	   m_VOL, m_SPD;
+		uint8_t m_c0{}, m_c1{};
+		ATMDS3TrackCmd() = default;
 		ATMDS3TrackCmd( ATMDS3_CMD use, unsigned char val ) { set( use, val ); }
 		void set( ATMDS3_CMD use, unsigned char val )
 		{ // clang-format off
 			switch( use ) {
-				case ATMDS3_CMD::uses_V:	m_VOL = val;	break;
-				case ATMDS3_CMD::uses_S:	m_SPD = val;	break;
+				case ATMDS3_CMD::uses_V:	m_c0 |= val | uint8_t(ATMDS3_CMD::uses_V);	break;
+				case ATMDS3_CMD::uses_S:	m_c1 = val;	m_c0 |= uint8_t(ATMDS3_CMD::uses_S); break;
 				default: return;								// Wrong values are ignored!
 			}
-			m_Uses = ATMDS3_CMD( int(use) + int(m_Uses) );
 		} // clang-format on
 	};
 
@@ -100,14 +100,16 @@ namespace Editor
 		ATMDS3TrackEvents();
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
-		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
+													   uint16_t inDataSize ) const noexcept override;
 	};
 	struct ATMDS3SectorEvents : public IEventDefinition
 	{
 		ATMDS3SectorEvents();
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
-		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData, uint16_t inDataSize ) const noexcept override;
+		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
+													   uint16_t inDataSize ) const noexcept override;
 		bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept override;
 	};
 
@@ -115,6 +117,7 @@ namespace Editor
 	{
 		friend class ATMDS3TrackEvents;
 		friend class ATMDS3SectorEvents;
+
 	  public:
 		// Static constants cannot be made inherited. So we give it another virtual …
 		DriverArchitectureATMDS3();
@@ -138,7 +141,10 @@ namespace Editor
 		uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
 
 	  private:
-		void GenerateCommandTables( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
+		void	GenerateCommandTables( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
+		uint8_t GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept;
+		uint8_t GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept;
+
 		std::vector< ATMDS3TrackCmd >  m_OrderCommands;
 		std::vector< ATMDS3SectorCmd > m_SequenceCommands;
 		ATMDS3TrackEvents			   m_TrackEventDef;
