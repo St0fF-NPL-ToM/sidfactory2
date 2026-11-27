@@ -35,6 +35,18 @@ namespace Editor
 		m_SentinelDisplayFormat = { T{ 0x7f, "...." }, T{ 0xfe, "loop" }, T{ 0xff, "stop" }, T{ 0xf0, "SNGx" } };
 	}
 
+	uint8_t ATMDS3TrackEvents::GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept
+	{
+		ATMDS3TrackCmd cmd;
+		if ( volume != 0xff ) cmd.set( ATMDS3_CMD::uses_V, volume & 15 );
+		if ( speed != 0xff ) cmd.set( ATMDS3_CMD::uses_S, speed );
+		const uint16_t v = cmd.m_c0 | ( cmd.m_c1 << 8 );
+		for ( uint8_t res = 0; res < m_OrderCommands.size(); ++res )
+			if ( auto c = m_OrderCommands[ res ]; v == ( c.m_c0 | ( c.m_c1 << 8 ) ) ) return res;
+
+		return m_OrderCommands.size(); // should never reach here!
+	}
+
 	EventsPackResult ATMDS3TrackEvents::Pack( const IDataSourceEvents& inData, uint8_t* od ) const noexcept
 	{
 		int				   out{}, trp{};
@@ -44,9 +56,7 @@ namespace Editor
 			// Finde Kommando, falls eines Referenziert wurde:
 			if ( inData.HasCommand( index ) ) {
 				const auto cid = inData.GetCommand( index );
-				const auto cmd = // unconventional callback into the architecture class
-					static_cast< DriverArchitectureATMDS3* >( inData.GetDriverInfo().GetDriverArchitecture() )
-						->m_OrderCommands[ cid ];
+				const auto cmd = m_OrderCommands[ cid ];
 				if ( uint8_t( cmd.m_c0 ) & uint8_t( ATMDS3_CMD::uses_V ) ) od[ out++ ] = ( cmd.m_c0 & 0x0f ) | 0xe0;
 				if ( uint8_t( cmd.m_c0 ) & uint8_t( ATMDS3_CMD::uses_S ) ) od[ out++ ] = ( cmd.m_c1 & 0x1f ) | 0x60;
 			}
@@ -86,8 +96,9 @@ namespace Editor
 		// Lies den Eingabestrom eines Tracks … ACHTUNG: Repeat nicht vergessen!
 		unsigned			 index{}, repeat{}, pos{};
 		int					 vol{ -1 }, spd{ -1 }, trp{ 0 }, lc{ -1 };
-		std::map< int, int > rowStarts( { 0, 0 } );
+		std::map< int, int > rowStarts;
 		bool				 trpC{ true }; // always tell SF2 to start with TRP #0
+		rowStarts[ 0 ] = 0;
 
 		while ( true ) {
 			uint8_t C = str[ pos++ ];
@@ -119,10 +130,7 @@ namespace Editor
 				// Transpose-Änderung?
 				if ( trpC ) o.SetValue( trp, index, Semantic::Parameter ), trpC = false;
 				// Kommando zusammenbauen?
-				if ( vol >= 0 || spd >= 0 )
-					evt.m_Command = lc = // unconventional callback into the architecture class
-						static_cast< DriverArchitectureATMDS3* >( o.GetDriverInfo().GetDriverArchitecture() )
-							->GetTrackCommandIndex( vol, spd );
+				if ( vol >= 0 || spd >= 0 ) evt.m_Command = lc = GetTrackCommandIndex( vol, spd );
 				++index;
 				for ( int i = 0; i < repeat; ++i, ++index ) o[ index ] = evt;
 				repeat = 0;
@@ -164,37 +172,232 @@ namespace Editor
 	ATMDS3SectorEvents::ATMDS3SectorEvents()
 		: IEventDefinition()
 	{
-		m_Param.m_Value = {0,0x1f,0xc0};
-		m_Param.m_Sentinels.m_Count = 3;
-		m_Param.m_Sentinels.m_Types[0] = SentinelType::Empty;
-		m_Param.m_Sentinels.m_Types[1] = SentinelType::Legato;
-		m_Param.m_Sentinels.m_Types[2] = SentinelType::Stop;
-		m_Param.m_Sentinels.m_Values[0] = 0x80;
-		m_Param.m_Sentinels.m_Values[1] = 0xfb;
-		m_Param.m_Sentinels.m_Values[2] = 0xff;
-		m_Command.m_Value = {0,0x3f,0};
-		m_Command.m_Sentinels.m_Count = 1;
-		m_Command.m_Sentinels.m_Types[0] = SentinelType::Empty;
-		m_Command.m_Sentinels.m_Values[0] = 0xfe;
-		m_Payload.m_Value = {0,0x5f,0};
-		m_Payload.m_Sentinels.m_Count = 3;
-		m_Payload.m_Sentinels.m_Types[0] = SentinelType::Empty;
-		m_Payload.m_Sentinels.m_Types[1] = SentinelType::Gate;
-		m_Payload.m_Sentinels.m_Types[2] = SentinelType::Mark;	// st0ff command
-		m_Payload.m_Sentinels.m_Values[0] = 0xfe;
-		m_Payload.m_Sentinels.m_Values[1] = 0xfd;
-		m_Payload.m_Sentinels.m_Values[2] = 0xfc;	// st0ff command
+		m_Param.m_Value						= { 0, 0x1f, 0xc0 };
+		m_Param.m_Sentinels.m_Count			= 3;
+		m_Param.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty;
+		m_Param.m_Sentinels.m_Types[ 1 ]	= SentinelType::Legato;
+		m_Param.m_Sentinels.m_Types[ 2 ]	= SentinelType::Stop;
+		m_Param.m_Sentinels.m_Values[ 0 ]	= 0x80;
+		m_Param.m_Sentinels.m_Values[ 1 ]	= 0xfb;
+		m_Param.m_Sentinels.m_Values[ 2 ]	= 0xff;
+		m_Command.m_Value					= { 0, 0x3f, 0 };
+		m_Command.m_Sentinels.m_Count		= 1;
+		m_Command.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty;
+		m_Command.m_Sentinels.m_Values[ 0 ] = 0xfe;
+		m_Payload.m_Value					= { 0, 0x5f, 0 };
+		m_Payload.m_Sentinels.m_Count		= 3;
+		m_Payload.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty;
+		m_Payload.m_Sentinels.m_Types[ 1 ]	= SentinelType::Gate;
+		m_Payload.m_Sentinels.m_Types[ 2 ]	= SentinelType::Mark; // st0ff command
+		m_Payload.m_Sentinels.m_Values[ 0 ] = 0xfe;
+		m_Payload.m_Sentinels.m_Values[ 1 ] = 0xfd;
+		m_Payload.m_Sentinels.m_Values[ 2 ] = 0xfc; // st0ff command
 		using T								= std::pair< const unsigned char, std::string >;
 		m_SentinelDisplayFormat = { T{ 0x7f, "...." }, T{ 0xfe, "loop" }, T{ 0xff, "stop" }, T{ 0xf0, "SNGx" } };
 	}
+
+	uint8_t ATMDS3SectorEvents::GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept
+	{
+		for ( uint8_t res = 0; res < m_SequenceCommands.size(); ++res )
+			if ( auto* c = &m_SequenceCommands[ res ]; memcmp( c, &cmd, sizeof( ATMDS3SectorCmd ) ) == 0 ) return res;
+
+		return m_SequenceCommands.size(); // should never reach here!
+	}
+
 	EventsPackResult ATMDS3SectorEvents::Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept
-	{}
+	{
+		uint8_t	 dur{ 0xff }, ins{ 0xff }, ldur{ dur }, lins{ ins };
+		bool	 legato_on{ false }, llegato_on{ false };
+		uint8_t* tgt = ouTernalBuffer;
+
+		for ( int i{}; i < inData.GetLength(); ++i ) {
+			// Build an ATMDS3-Sector row from a SF2 editor row description
+			const auto is = inData.GetSentinel( i, Semantic::Parameter );
+			if ( is == SentinelType::Stop ) *( ++tgt ) = 0xff;
+			else {
+				// → find out duration of this row
+				const auto evt = inData.GetSentinel( i, Semantic::Payload );
+				if ( inData.GetLength() - i < 2 ) dur = 0; // catch the case where we cannot check further
+				else {
+					bool more = true;
+					int	 j{};
+					while ( more && j < 0x40 ) {
+						// cases: - this is a note and the following is a wait
+						//		  - this is some Sentinel and the following is the same
+						auto nevt = inData.GetSentinel( i + ++j, Semantic::Payload );
+						more	  = ( evt == SentinelType::NoSentinel && nevt == SentinelType::Empty )
+									|| ( evt == nevt && evt != SentinelType::NoSentinel );
+						more &= inData.GetSentinel( i + j, Semantic::Command ) == SentinelType::Empty;
+					}
+					dur = j - 1;
+				}
+				if ( dur != ldur ) *( tgt++ ) = 0x80 | dur; // store duration change
+
+				// Check instrument column
+				if ( is == SentinelType::NoSentinel ) { // instrument set
+					ins = ( inData.GetValue( i, Semantic::Parameter ) & 0x1f );
+					if ( ins != lins ) *( tgt++ ) = 0xc0 | ins, lins = ins;
+				} else if ( is == SentinelType::Legato ) {
+					if ( !llegato_on ) { // Legato is a system state in ATMDS and not a "modifier"
+						*( tgt++ ) = 0xfb;
+						legato_on  = true;
+					}
+				}
+				// Check command column
+				bool has_glide{ false };
+				if ( inData.GetSentinel( i, Semantic::Command ) != SentinelType::Empty ) {
+					const auto& cmd = m_SequenceCommands.at( inData.GetCommand( i ) );
+					if ( cmd( ATMDS3_CMD::uses_AD ) ) {
+						*( tgt++ ) = 0xfa;
+						*( tgt++ ) = cmd.m_AD;
+					}
+					if ( cmd( ATMDS3_CMD::uses_SR ) ) {
+						*( tgt++ ) = 0xf9;
+						*( tgt++ ) = cmd.m_SR;
+					}
+					if ( cmd( ATMDS3_CMD::uses_FF ) ) {
+						*( tgt++ ) = 0xf8;
+						*( tgt++ ) = cmd.m_FF;
+					}
+					if ( cmd( ATMDS3_CMD::uses_PP ) ) {
+						*( tgt++ ) = 0xf7;
+						*( tgt++ ) = cmd.m_PP;
+					}
+					if ( cmd( ATMDS3_CMD::uses_FP ) ) {
+						*( tgt++ ) = 0xf6;
+						*( tgt++ ) = cmd.m_FP;
+					}
+					if ( cmd( ATMDS3_CMD::uses_G ) ) {
+						has_glide  = true;
+						*( tgt++ ) = 0x60 | cmd.m_G;
+						*( tgt++ ) = cmd.m_T;
+					}
+				}
+				// Finally, our payload
+				if ( evt == SentinelType::NoSentinel ) {
+					// we do play a note - special Handling for Legato is required!
+					const auto pd = inData.GetPayload( i );
+					// As legato is an osc state and not an event modifier, it needs
+					// to get reset in case it was enabled and is not used, now.
+					if ( !has_glide && llegato_on != legato_on ) {
+						*( tgt++ ) = 0xfb;
+						llegato_on = legato_on;
+						legato_on  = false;
+					}
+					*( tgt++ ) = pd; // finally, write the note, concluding this row-set
+				} else {
+					*( tgt++ ) = inData.GetAllSentinels( Semantic::Payload ).GetSentinel( evt );
+				}
+			}
+		}
+		return { ouTernalBuffer, int( tgt - ouTernalBuffer ) };
+	}
 	EventsUnpackResult ATMDS3SectorEvents::Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept
-	{}
+	{
+		unsigned		dur{}, row{};
+		uint8_t *		src{ inTernalBuffer }, D{}, lcs{ 0xff }, lis{ 0xff };
+		bool			rowDone{ false }, leg{ false }, cmd{ false }, hasNote{ false };
+		ATMDS3SectorCmd tmpCmd;
+
+		outData.ClearEvent( row );
+		do {
+			D = *( src++ );
+			if ( D < 0xff ) {
+				if ( D > 0xfb ) { // pause …
+					static const SentinelType dings[] = { SentinelType::Mark, SentinelType::Gate, SentinelType::Empty };
+					outData.SetSentinel( row, dings[ D - 0xfc ], Semantic::Payload );
+					// this marks the end of the row
+					rowDone = true;
+				} else if ( D == 0xfb ) {
+					leg = !leg;
+				} else if ( D > 0xf0 || ( ( D & 0xe0 ) == 0x60 ) ) { // any command
+					cmd = true;
+					if ( D < 0x80 ) {
+						tmpCmd.set( ATMDS3_CMD::uses_G, D & 0x1f );
+						tmpCmd.set( ATMDS3_CMD::none, *( src++ ) );
+					} else if ( D == 0xf6 ) {
+						tmpCmd.set( ATMDS3_CMD::uses_FP, *( src++ ) );
+					} else if ( D == 0xf7 ) {
+						tmpCmd.set( ATMDS3_CMD::uses_PP, *( src++ ) );
+					} else if ( D == 0xf8 ) {
+						tmpCmd.set( ATMDS3_CMD::uses_FF, *( src++ ) );
+					} else if ( D == 0xf9 ) {
+						tmpCmd.set( ATMDS3_CMD::uses_SR, *( src++ ) );
+					} else if ( D == 0xfa ) {
+						tmpCmd.set( ATMDS3_CMD::uses_AD, *( src++ ) );
+					}
+				} else if ( D >= 0xc0 ) {
+					outData.SetValue( lis = ( D & 0x1f ), row, Semantic::Parameter );
+				} else if ( D >= 0x80 ) dur = D & 0x3f;
+				else if ( D < 0x60 ) {
+					outData.SetValue( D, row, Semantic::Payload );
+					rowDone = hasNote = true;
+				}
+				if ( rowDone ) {
+					if ( cmd ) { // if there were commands - add unified item
+						lis = GetSectorCommandIndex( tmpCmd );
+						outData.SetValue( lis, row, Semantic::Command );
+						tmpCmd.clear();
+						cmd = false;
+					}
+					if ( leg && hasNote ) outData.SetSentinel( row, SentinelType::Legato, Semantic::Parameter );
+					for ( int n{}; n <= dur; ++n ) outData.ClearEvent( ++row );
+					hasNote = rowDone = false;
+				}
+			}
+		} while ( *src != 0xff );
+		outData.SetSentinel( row, SentinelType::Stop, Semantic::Parameter );
+		return { row, unsigned( src - inTernalBuffer ), lis, lcs, false };
+	}
 	EventsPackedRowPos ATMDS3SectorEvents::GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
 																	   uint16_t inDataSize ) const noexcept
-	{}
-	bool ATMDS3SectorEvents::MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept {}
+	{
+		unsigned		row{};
+		uint8_t *		src{ inData }, dur{}, ins{ 0xff }, cmd{ 0xff }, D{};
+		bool			rowDone{ false }, hasNote{ false }, hasCmd{ false };
+		ATMDS3SectorCmd tmpCmd;
+
+		do {
+			D = *( src++ );
+			if ( D < 0xff ) { // END does not count, pauses mark the end of the row
+				if ( D > 0xfb ) rowDone = true;
+				else if ( D > 0xf0 || ( ( D & 0xe0 ) == 0x60 ) ) { // any command or legato
+					if ( D != 0xfb ) {
+						hasCmd = true; // we need to return the last command set …
+						if ( D < 0x80 ) {
+							tmpCmd.set( ATMDS3_CMD::uses_G, D & 0x1f );
+							tmpCmd.set( ATMDS3_CMD::none, *( src++ ) );
+						} else if ( D == 0xf6 ) {
+							tmpCmd.set( ATMDS3_CMD::uses_FP, *( src++ ) );
+						} else if ( D == 0xf7 ) {
+							tmpCmd.set( ATMDS3_CMD::uses_PP, *( src++ ) );
+						} else if ( D == 0xf8 ) {
+							tmpCmd.set( ATMDS3_CMD::uses_FF, *( src++ ) );
+						} else if ( D == 0xf9 ) {
+							tmpCmd.set( ATMDS3_CMD::uses_SR, *( src++ ) );
+						} else if ( D == 0xfa ) {
+							tmpCmd.set( ATMDS3_CMD::uses_AD, *( src++ ) );
+						}
+					}
+				} else if ( D >= 0xc0 ) ins = D & 0x1f;
+				else if ( D >= 0x80 ) dur = D & 0x3f;
+				else if ( D < 0x60 ) rowDone = hasNote = true;
+				if ( rowDone ) {
+					if ( hasCmd ) {
+						cmd = GetSectorCommandIndex( tmpCmd );
+						tmpCmd.clear();
+						hasCmd = false;
+					}
+					++row;
+					hasNote = rowDone = false;
+					row += dur;
+				}
+			}
+		} while ( ( row <= inIndex ) && ( *src != 0xff ) );
+		return { row > inIndex, *src == 0xff, uint8_t( src - inData ), ins, cmd };
+	}
+	bool ATMDS3SectorEvents::MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept
+	{ return true; } // TODO: this actually is pretty wrong and will destabilize the player.
 
 
 	void DriverArchitectureATMDS3::SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )
@@ -202,7 +405,7 @@ namespace Editor
 		FOUNDATION_ASSERT( inCPUMemory != nullptr );
 		FOUNDATION_ASSERT( inCPUMemory->IsLocked() );
 
-		unsigned char empty_sequence_data[] = { 0x90, 0xfe, 0xff }; // dur=10,w8,end
+		unsigned char empty_sequence_data[] = { 0x8f, 0xfe, 0xff }; // dur=10,w8,end
 		inCPUMemory->SetData( inAddress, empty_sequence_data, sizeof( empty_sequence_data ) );
 	}
 
@@ -220,7 +423,8 @@ namespace Editor
 															   Emulation::CPUMemory*		  inCPUMemory,
 															   const DriverInfo&			  inDriverInfo )
 	{
-		if ( m_OrderCommands.empty() || m_SequenceCommands.empty() ) GenerateCommandTables( inCPUMemory, inDriverInfo );
+		if ( m_TrackEventDef.m_OrderCommands.empty() || m_SectorEventDef.m_SequenceCommands.empty() )
+			GenerateCommandTables( inCPUMemory, inDriverInfo );
 
 		const auto&			driver_common = inDriverInfo.GetDriverCommon();
 		const auto&			music_data	  = inDriverInfo.GetMusicData();
@@ -279,10 +483,10 @@ namespace Editor
 				for ( int pos = 0; pos < 256; pos++ ) {
 					// SPD command?
 					if ( ( tmp[ pos ] > 0x60u ) && ( tmp[ pos ] < 0x80u ) )
-						addRC( ATMDS3_CMD::uses_S, tmp[ pos++ ] & 0x1f, m_OrderCommands );
+						addRC( ATMDS3_CMD::uses_S, tmp[ pos++ ] & 0x1f, m_TrackEventDef.m_OrderCommands );
 					// VOL command?
 					if ( ( tmp[ pos ] > 0xe0u ) && ( tmp[ pos ] < 0xf0u ) )
-						addRC( ATMDS3_CMD::uses_V, tmp[ pos++ ] & 0x0f, m_OrderCommands );
+						addRC( ATMDS3_CMD::uses_V, tmp[ pos++ ] & 0x0f, m_TrackEventDef.m_OrderCommands );
 					// Sector → reset row command
 					if ( tmp[ pos ] < 0x60u ) {
 						rowCmd = -1;
@@ -297,15 +501,20 @@ namespace Editor
 									if ( ts[ sp ] == 0xffu ) break; // end marker
 								}
 								if ( ts[ sp ] < 0x80u ) { // glide table index and target note
-									addRC( ATMDS3_CMD::uses_G, ts[ sp++ ] & 0x1f, m_SequenceCommands );
-									addRC( ATMDS3_CMD::none, ts[ sp++ ], m_SequenceCommands );
+									addRC( ATMDS3_CMD::uses_G, ts[ sp++ ] & 0x1f, m_SectorEventDef.m_SequenceCommands );
+									addRC( ATMDS3_CMD::none, ts[ sp++ ], m_SectorEventDef.m_SequenceCommands );
 									// after the glide-fx, sp points to the respective note
 								}
-								if ( ts[ sp ] == 0xf6u ) addRC( ATMDS3_CMD::uses_FP, ts[ ++sp ], m_SequenceCommands );
-								if ( ts[ sp ] == 0xf7u ) addRC( ATMDS3_CMD::uses_PP, ts[ ++sp ], m_SequenceCommands );
-								if ( ts[ sp ] == 0xf8u ) addRC( ATMDS3_CMD::uses_FF, ts[ ++sp ], m_SequenceCommands );
-								if ( ts[ sp ] == 0xf9u ) addRC( ATMDS3_CMD::uses_SR, ts[ ++sp ], m_SequenceCommands );
-								if ( ts[ sp ] == 0xfau ) addRC( ATMDS3_CMD::uses_AD, ts[ ++sp ], m_SequenceCommands );
+								if ( ts[ sp ] == 0xf6u )
+									addRC( ATMDS3_CMD::uses_FP, ts[ ++sp ], m_SectorEventDef.m_SequenceCommands );
+								if ( ts[ sp ] == 0xf7u )
+									addRC( ATMDS3_CMD::uses_PP, ts[ ++sp ], m_SectorEventDef.m_SequenceCommands );
+								if ( ts[ sp ] == 0xf8u )
+									addRC( ATMDS3_CMD::uses_FF, ts[ ++sp ], m_SectorEventDef.m_SequenceCommands );
+								if ( ts[ sp ] == 0xf9u )
+									addRC( ATMDS3_CMD::uses_SR, ts[ ++sp ], m_SectorEventDef.m_SequenceCommands );
+								if ( ts[ sp ] == 0xfau )
+									addRC( ATMDS3_CMD::uses_AD, ts[ ++sp ], m_SectorEventDef.m_SequenceCommands );
 								// all other commands are single byte, thus we can ignore them.
 							}
 							sectors_parsed.emplace( tmp[ pos ] );
@@ -320,31 +529,140 @@ namespace Editor
 		const auto& td = inDriverInfo.GetTableDefinitions();
 		for ( const auto& t: td )
 			if ( t.m_ID == static_cast< uint8_t >( ATMDS3::TableID::TRACK_CMD ) )
-				inCPUMemory->SetData( t.m_Address, m_OrderCommands.data(),
-									  m_OrderCommands.size() * sizeof( ATMDS3TrackCmd ) );
+				inCPUMemory->SetData( t.m_Address, m_TrackEventDef.m_OrderCommands.data(),
+									  m_TrackEventDef.m_OrderCommands.size() * sizeof( ATMDS3TrackCmd ) );
 			else if ( t.m_ID == static_cast< uint8_t >( ATMDS3::TableID::SECTOR_CMD ) )
-				inCPUMemory->SetData( t.m_Address, m_SequenceCommands.data(),
-									  m_SequenceCommands.size() * sizeof( ATMDS3SectorCmd ) );
+				inCPUMemory->SetData( t.m_Address, m_SectorEventDef.m_SequenceCommands.data(),
+									  m_SectorEventDef.m_SequenceCommands.size() * sizeof( ATMDS3SectorCmd ) );
 	}
 
 	uint8_t DriverArchitectureATMDS3::GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept
-	{
-		ATMDS3TrackCmd cmd;
-		if ( volume != 0xff ) cmd.set( ATMDS3_CMD::uses_V, volume & 15 );
-		if ( speed != 0xff ) cmd.set( ATMDS3_CMD::uses_S, speed );
-		const uint16_t v = cmd.m_c0 | ( cmd.m_c1 << 8 );
-		for ( uint8_t res = 0; res < m_OrderCommands.size(); ++res )
-			if ( auto c = m_OrderCommands[ res ]; v == ( c.m_c0 | ( c.m_c1 << 8 ) ) ) return res;
-
-		return m_OrderCommands.size(); // should never reach here!
-	}
+	{ return m_TrackEventDef.GetTrackCommandIndex( volume, speed ); }
 
 	uint8_t DriverArchitectureATMDS3::GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept
-	{
-		for ( uint8_t res = 0; res < m_SequenceCommands.size(); ++res )
-			if ( auto* c = &m_SequenceCommands[ res ]; memcmp( c, &cmd, sizeof( ATMDS3SectorCmd ) ) == 0 ) return res;
+	{ return m_SectorEventDef.GetSectorCommandIndex( cmd ); }
 
-		return m_SequenceCommands.size(); // should never reach here!
+
+	std::vector< uint16_t >
+	DriverArchitectureATMDS3::GetOrderListsLength( const DriverInfo&						 di,
+												   const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		std::vector< uint16_t > res;
+		auto&					md = di.GetMusicData();
+		uint16_t				t0 = md.m_OrderListTrack1Address;
+		for ( int s = 0; s < 4; s++ )
+			for ( int t = 0; t < md.m_TrackCount; ++t )
+				for ( int l = 0; l < 256; ++l ) // Tracks / Orders are easy: may not contain FE/FF except at END
+					if ( auto b = mem[ t0 + 256 * ( s * md.m_TrackCount + t ) + l ]; b >= 0xfe )
+						res.push_back( l + ( b == 0xfe ? 2 : 1 ) ), l = 255;
+		return res;
+	}
+
+	std::vector< int >
+	DriverArchitectureATMDS3::GetSequenceUsageCount( const DriverInfo&						   di,
+													 const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		auto&			   md = di.GetMusicData();
+		std::vector< int > res( md.m_SequenceCount, 0 );
+		uint16_t		   t0 = md.m_OrderListTrack1Address;
+		for ( int s = 0; s < 4; s++ )
+			for ( int t = 0; t < md.m_TrackCount; ++t )
+				for ( int l = 0; l < 256; ++l )
+					if ( auto b = mem[ t0 + 256 * ( s * md.m_TrackCount + t ) + l ]; b < md.m_SequenceCount )
+						res[ b ]++;
+					else if ( b >= 0xfe ) l = 255; // end this track
+		return res;
+	}
+
+	uint16_t
+	DriverArchitectureATMDS3::GetEndOfMusicDataAddress( const DriverInfo&						  di,
+														const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		return 0xb4c0; // in case the sequence pointer tables are located in editor layout, they're behind the last seq
+	}
+
+	uint16_t DriverArchitectureATMDS3::GetSequenceLength( uint8_t inSequenceIndex, const DriverInfo& di,
+														  const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		auto&	 md = di.GetMusicData();
+		uint16_t s0 = md.m_Sequence00Address + md.m_SequenceSize * inSequenceIndex;
+		for ( int l = 0; l < md.m_SequenceSize; ++l ) {
+			const auto C = mem.GetByte( s0 + l );
+			if ( C == 0xff ) return l + 1;
+			else if ( C >= 0xf6 && C < 0xfb ) ++l; // Commands with additional parameters
+			else if ( C >= 0x60 && C < 0x80 )
+				++l; // which could be 0xff's
+					 // any other byte value is consumed "as is" and does not mean "end".
+		}
+		return 256;
+	}
+
+	uint8_t DriverArchitectureATMDS3::GetFirstUnusedSequenceIndex(
+		const DriverInfo& di, const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		auto sc = GetSequenceUsageCount( di, mem );
+		for ( int i{}; i < sc.size(); ++i )
+			if ( sc[ i ] == 0 ) return i;
+		return 0x60;
+	}
+
+	uint8_t
+	DriverArchitectureATMDS3::GetFirstEmptySequenceIndex( const DriverInfo&							di,
+														  const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		// so what is an empty sequence??? I'd say anything containing: dur,pause,end or dur,off,end
+		auto&	 md = di.GetMusicData();
+		uint16_t s0 = md.m_Sequence00Address;
+		uint8_t	 tmp[ 3 ];
+		for ( int s{}; s < md.m_SequenceCount; ++s ) {
+			mem.GetData( s0 + md.m_SequenceSize * s, tmp, 3 );
+			// Mask out duration value (using 0xc0 to receive 0x80 for dur, and masking
+			// the reset-indicator on the pause to get a pause/gate difference)
+			if ( ( tmp[ 0 ] & 0xc0 ) == 0x80	/* DUR masked out */
+				 && ( tmp[ 1 ] / 0xfd ) == 0xfc /* mask away the reset bit to receive a pause */
+				 && tmp[ 2 ] == 0xff )
+				return s;
+		}
+		return 0xff;
+	}
+
+	uint8_t DriverArchitectureATMDS3::GetHighestSequenceIndexUsed(
+		const DriverInfo& di, const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		auto sc = GetSequenceUsageCount( di, mem );
+		for ( int i = sc.size() - 1; i > 0; --i )
+			if ( sc[ i ] > 0 ) return i;
+		return 0xff;
+	}
+
+	uint8_t DriverArchitectureATMDS3::GetHighestInstrumentIndexUsed(
+		const DriverInfo& di, const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		uint8_t ins = 0xff;
+		auto&	md	= di.GetMusicData();
+		auto	sc	= GetSequenceUsageCount( di, mem );
+		for ( int i = sc.size() - 1; i > 0; --i )
+			if ( sc[ i ] > 0 ) { // check all used sequences
+				uint16_t s0 = md.m_Sequence00Address + md.m_SequenceSize * i;
+				for ( int l = 0; l < md.m_SequenceSize; ++l ) {
+					const auto C = mem.GetByte( s0 + l );
+					if ( C == 0xff ) l = md.m_SequenceSize;
+					else if ( C >= 0xf6 && C < 0xfb ) ++l; // Commands with additional parameters
+					else if ( C >= 0x60 && C < 0x80 ) ++l; // which could be 0xff's
+					else if ( C >= 0xc0 && C < 0xe0 ) {
+						if ( ins == 0xff ) ins = C & 0x1f;
+						else ins = std::min( ins, uint8_t( C & 0x1f ) );
+					}
+				}
+			}
+		return ins;
+	}
+
+	uint8_t
+	DriverArchitectureATMDS3::GetHighestCommandIndexUsed( const DriverInfo&							di,
+														  const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
+	{
+		return m_SectorEventDef.m_SequenceCommands.size() - 1;
 	}
 
 } // namespace Editor

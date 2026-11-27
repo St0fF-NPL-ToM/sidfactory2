@@ -78,6 +78,7 @@ namespace Editor
 	{
 		ATMDS3_CMD m_Uses{ ATMDS3_CMD::none };
 		uint8_t	   m_AD, m_SR, m_PP, m_FP, m_FF, m_G, m_T;
+		ATMDS3SectorCmd() = default;
 		ATMDS3SectorCmd( ATMDS3_CMD use, unsigned char val ) { set( use, val ); }
 		void set( ATMDS3_CMD use, unsigned char val )
 		{ // clang-format off
@@ -93,24 +94,40 @@ namespace Editor
 			}
 			m_Uses = ATMDS3_CMD( int(use) + int(m_Uses) );
 		} // clang-format on
+		bool operator()( ATMDS3_CMD use ) const noexcept { return bool( uint8_t( m_Uses ) & uint8_t( use ) ); }
+		void clear() { memset( this, 0, sizeof( ATMDS3SectorCmd ) ); }
+		bool operator==( const ATMDS3SectorCmd& o ) const noexcept
+		{
+			if ( m_Uses == o.m_Uses ) { // same uses must be compared
+				for ( int bit = 0; bit <= 5; ++bit )
+					if ( o( ATMDS3_CMD( 1 << bit ) ) && ( ( &m_AD )[ bit ] != ( &o.m_AD )[ bit ] ) ) return false;
+				if ( o( ATMDS3_CMD::uses_G ) ) return m_T == o.m_T;
+				return true;
+			}
+			return false;
+		}
 	};
 
 	struct ATMDS3TrackEvents : public IEventDefinition
 	{
 		ATMDS3TrackEvents();
+		uint8_t			   GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept;
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
 		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
 													   uint16_t inDataSize ) const noexcept override;
+		std::vector< ATMDS3TrackCmd > m_OrderCommands;
 	};
 	struct ATMDS3SectorEvents : public IEventDefinition
 	{
 		ATMDS3SectorEvents();
+		uint8_t			   GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept;
 		EventsPackResult   Pack( const IDataSourceEvents& inData, uint8_t* ouTernalBuffer ) const noexcept override;
 		EventsUnpackResult Unpack( IDataSourceEvents& outData, uint8_t* inTernalBuffer ) const noexcept override;
 		EventsPackedRowPos GetNextIndexPackedPosition( int inIndex, uint8_t* inData,
 													   uint16_t inDataSize ) const noexcept override;
 		bool MayPushData( IDataSourceEvents&, const DriverInfo&, const DriverState& ) const noexcept override;
+		std::vector< ATMDS3SectorCmd > m_SequenceCommands;
 	};
 
 	class DriverArchitectureATMDS3 final : public IDriverArchitecture
@@ -141,13 +158,11 @@ namespace Editor
 		uint8_t	 GetHighestCommandIndexUsed( DRIVER_UTIL_PARAMS ) const noexcept override;
 
 	  private:
-		void	GenerateCommandTables( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
-		uint8_t GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept;
-		uint8_t GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept;
+		void			   GenerateCommandTables( Emulation::CPUMemory* inCPUMemory, const DriverInfo& inDriverInfo );
+		uint8_t			   GetTrackCommandIndex( uint8_t volume, uint8_t speed ) const noexcept;
+		uint8_t			   GetSectorCommandIndex( const ATMDS3SectorCmd& cmd ) const noexcept;
 
-		std::vector< ATMDS3TrackCmd >  m_OrderCommands;
-		std::vector< ATMDS3SectorCmd > m_SequenceCommands;
-		ATMDS3TrackEvents			   m_TrackEventDef;
-		ATMDS3SectorEvents			   m_SectorEventDef;
+		ATMDS3TrackEvents  m_TrackEventDef;
+		ATMDS3SectorEvents m_SectorEventDef;
 	};
 } // namespace Editor

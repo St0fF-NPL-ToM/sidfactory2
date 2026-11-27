@@ -3,9 +3,22 @@
 
 *By: Stefan < St0fF / NPL ^ ToM > Kaps*
 
+<!-- TOC -->
+
+- [Existing abstraction layer structure](#existing-abstraction-layer-structure)
+    - [Music information abstraction layer](#music-information-abstraction-layer)
+    - [Instrument abstraction layer](#instrument-abstraction-layer)
+- [Necessary abstraction enhancements](#necessary-abstraction-enhancements)
+    - [Music information level](#music-information-level)
+        - [Assembling the music level](#assembling-the-music-level)
+    - [Instrument information level](#instrument-information-level)
+
+<!-- /TOC -->
+
 SIDFactoryII was the first Cross-SID-Tracker I saw that was able to load different drivers according to the required situation.
 
 Meaning:
+
 - you can load a minimal driver for size coding productions
 - you can use a trimmed-down driver for musically scoring rastertime-hungry effects
 - and you can load up "the fully fledged driver"
@@ -137,4 +150,54 @@ Every driver has it's own encoding of events.  This driver-specific know-how was
   - implement the respective `Pack`, `Unpack`, and `GetNextIndexPackedPosition` pure-virtual functions
 - repeat for the other level of music data
 
-That way, the gears begin to grip: the data sources are created referencing the respective event descriptions.  That way, the data sources receive the functions and the information at once, and it stays constant for the lifecycle of the driver.
+That way, the gears begin to grip: the data sources are created referencing the respective event descriptions.  Therefore, receiving the functions and the information at once, and it stays constant for the lifecycle of the driver.
+
+---
+
+### Instrument information level
+
+The instrument and table definitions of SF2 are already quite open.  There is the required table description and its accompanying instrument descriptions:
+
+For each table:
+
+- row/column counts and memory layout
+- Name, Type and ID
+- Rules for the respective table editor (coloring, ins/del, editing rules)
+- even allows for "naming table rows" by providing a "text size" (actually meant to name instruments and effects)
+
+Combining the instrument table with other tables:
+
+- reference column of instrument
+- special values
+- bitmask-checks
+- table loop condition description
+
+This was more a small overview, what's already there.  Let's do a deeper check-up "how open" this actually is.
+
+Those basic table definitions are very clear and optimal.  The memory layout and positioning is clear, naming and editor placement also work great.
+
+But the tables are still "dumb":  The connection interface between instrument table uses the following information.
+
+- TableID,
+- InstrumentDataPointerPosition,
+- PointerAndValue,
+- InstrumentDataConditionalValuePosition,
+- ConditionValueAndValue,
+- ConditionEqualityValue,
+- TableDataType,
+- TableJumpMarkerValuePosition,
+- TableJumpMarkerValue,
+- TableJumpDestinationIndexPosition
+
+This covers one conditional bitmask, and it covers to Mask the instrument table entry before using it as a pointer into the table.
+
+Sufficient for the way JCH's players handle instruments, but far from being abstract.
+
+For example: *Pulse Table activation in ATMDS-3.2*
+
+The instrument's pulse pointer may have any uint8_t value. 2 Values are special:
+
+- 0x00: disabled    - no pulse required at all
+- 0xff: continuous  - continue previously running effect, e.g. skip init/turn-off
+
+ATMDS3 does not have an "instrument engine enabler bit mask".  Instead it uses sentinel values for this decision.

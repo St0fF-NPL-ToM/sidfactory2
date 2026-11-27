@@ -211,7 +211,7 @@ namespace Editor
 		m_Payload.m_Sentinels.m_Count		= 3;
 		m_Payload.m_Sentinels.m_Types[ 0 ]	= SentinelType::Empty; // no operation type
 		m_Payload.m_Sentinels.m_Values[ 0 ] = 0x00;
-		m_Payload.m_Sentinels.m_Types[ 1 ]	= SentinelType::Gate; // "+++"
+		m_Payload.m_Sentinels.m_Types[ 1 ]	= SentinelType::Gate; // displayed as: "+++"
 		m_Payload.m_Sentinels.m_Values[ 1 ] = 0x7e;
 		m_Payload.m_Sentinels.m_Types[ 2 ]	= SentinelType::Stop;
 		m_Payload.m_Sentinels.m_Values[ 2 ] = 0x7f;

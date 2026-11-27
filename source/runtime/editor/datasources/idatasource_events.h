@@ -136,6 +136,7 @@ namespace Editor
 		{
 			return m_EventDef.IsParamSentinel( SentinelType::Loop, m_Events[ inIndex ] )
 				   || m_EventDef.IsParamSentinel( SentinelType::Stop, m_Events[ inIndex ] )
+				   || m_EventDef.IsParamSentinel( SentinelType::Start, m_Events[ inIndex ] )
 				   || m_EventDef.IsPayloadSentinel( SentinelType::Stop, m_Events[ inIndex ] );
 		}
 
@@ -189,10 +190,10 @@ namespace Editor
 		const char* GetSentinelText( SentinelType t, Semantic s ) const noexcept
 		{ return m_EventDef.GetSentinelText( t, s ); };
 
-		const SentinelDef& GetAllSentinels( Semantic s ) const noexcept { return d( s ).m_Sentinels; }
+		const SentinelDef&		  GetAllSentinels( Semantic s ) const noexcept { return d( s ).m_Sentinels; }
 		// this could become necessary for other drivers, where packing a sequence takes further
 		// details of the music data set as a whole into account.
-		const DriverInfo&  GetDriverInfo() const noexcept { return m_DriverInfo; }
+		const Editor::DriverInfo& GetDriverInfo() const noexcept { return m_DriverInfo; }
 
 	  protected:
 		void Clear()
