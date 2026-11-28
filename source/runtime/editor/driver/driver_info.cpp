@@ -1,5 +1,5 @@
 #include "runtime/editor/driver/driver_info.h"
-// #include "runtime/editor/atmds/driver_arch_atmds3.h"
+#include "runtime/editor/atmds/driver_arch_atmds3.h"
 #include "runtime/editor/auxilarydata/auxilary_data_collection.h"
 #include "runtime/editor/driver/driver_architecture_sidfactory2.h"
 #include "runtime/editor/interfaces/idriver_architecture.h"
@@ -270,9 +270,9 @@ namespace Editor
 			case DriverArchitectureSidFactory2::Descriptor:
 				m_DriverArchitecture = std::make_unique< DriverArchitectureSidFactory2 >();
 				break;
-			// case DriverArchitectureATMDS3::Descriptor:
-			// 	m_DriverArchitecture = std::make_unique< DriverArchitectureATMDS3 >();
-			// 	break;
+			case DriverArchitectureATMDS3::Descriptor:
+				m_DriverArchitecture = std::make_unique< DriverArchitectureATMDS3 >();
+				break;
 			default: m_DriverArchitecture.reset(); break;
 		}
 	}

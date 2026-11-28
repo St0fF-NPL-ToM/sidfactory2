@@ -100,7 +100,7 @@ namespace Editor
 		bool				 trpC{ true }; // always tell SF2 to start with TRP #0
 		rowStarts[ 0 ] = 0;
 
-		while ( true ) {
+		while ( pos < MAX_ORDER_PACKED_SIZE ) {
 			uint8_t C = str[ pos++ ];
 			if ( C == 0xff ) { // STOP
 				o.SetSentinel( index, SentinelType::Stop, Semantic::Parameter );
@@ -400,6 +400,10 @@ namespace Editor
 	{ return true; } // TODO: this actually is pretty wrong and will destabilize the player.
 
 
+	DriverArchitectureATMDS3::DriverArchitectureATMDS3()
+		: IDriverArchitecture( &m_TrackEventDef, &m_SectorEventDef )
+	{}
+
 	void DriverArchitectureATMDS3::SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress )
 	{
 		FOUNDATION_ASSERT( inCPUMemory != nullptr );
@@ -661,8 +665,6 @@ namespace Editor
 	uint8_t
 	DriverArchitectureATMDS3::GetHighestCommandIndexUsed( const DriverInfo&							di,
 														  const Emulation::IMemoryRandomReadAccess& mem ) const noexcept
-	{
-		return m_SectorEventDef.m_SequenceCommands.size() - 1;
-	}
+	{ return m_SectorEventDef.m_SequenceCommands.size() - 1; }
 
 } // namespace Editor

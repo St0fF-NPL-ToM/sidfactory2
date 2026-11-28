@@ -136,11 +136,12 @@ namespace Editor
 		friend class ATMDS3SectorEvents;
 
 	  public:
+		static constexpr uint8_t Descriptor = 0xac;
 		// Static constants cannot be made inherited. So we give it another virtual …
 		DriverArchitectureATMDS3();
 		virtual ~DriverArchitectureATMDS3() = default;
 
-		uint8_t GetID() const noexcept override { return 0xac; }
+		uint8_t GetID() const noexcept override { return Descriptor; }
 
 		void	SetEmptySequence( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;
 		void	SetEmptyOrderList( Emulation::CPUMemory* inCPUMemory, unsigned short inAddress ) override;

@@ -25,26 +25,28 @@ namespace Editor
 						   const Editor::DriverInfo& inDriverInfo, const Editor::DriverState& inDriverState,
 						   uint16_t inSourceAddress, int inBlockSize, uint16_t inMaxLength, uint8_t inId = 0u )
 			: DataSourceEmulationMemory( inCPUMemory, inSourceAddress, inBlockSize )
-			, MaxEventCount( inMaxLength )
-			, m_Events( new Event[ MaxEventCount ] )
-			, m_InternalBuffer( new unsigned char[ MaxEventCount * 2 + 1 ] )
 			, m_EventDef( inEventDefinition )
 			, m_DriverInfo( inDriverInfo )
 			, m_DriverState( inDriverState )
+			, MaxEventCount( inMaxLength )
 			, m_Id( inId )
-		{ PullDataFromSource(); }
+		{
+			m_Events		 = new Event[ MaxEventCount ];
+			m_InternalBuffer = new unsigned char[ MaxEventCount * 2 + 1 ];
+			PullDataFromSource();
+		}
 
 	  protected: // Copy-CTor can be made public in derived class if needed!
 		IDataSourceEvents( const IDataSourceEvents& inOther )
 			: DataSourceEmulationMemory( inOther )
 			, MaxEventCount( inOther.MaxEventCount )
-			, m_Events( new Event[ MaxEventCount ] )
-			, m_InternalBuffer( new unsigned char[ MaxEventCount * 2 + 1 ] )
 			, m_EventDef( inOther.m_EventDef )
 			, m_DriverInfo( inOther.m_DriverInfo )
 			, m_DriverState( inOther.m_DriverState )
 			, m_Id( inOther.m_Id )
 		{
+			m_Events		 = new Event[ MaxEventCount ];
+			m_InternalBuffer = new unsigned char[ MaxEventCount * 2 + 1 ];
 			for ( int i = 0; i < MaxEventCount; ++i ) m_Events[ i ] = inOther.m_Events[ i ];
 		}
 

@@ -46,7 +46,20 @@ namespace Editor
 
 
 	struct IEvent
-	{ uint8_t m_Param, m_Command, m_Payload, m_Reserved{}; }; // modern computers like sizes to be powers of 2
+	{
+		uint8_t m_Param, m_Command, m_Payload, m_Reserved{};
+		IEvent() = default;
+		IEvent( uint8_t a, uint8_t b )
+			: m_Param( a )
+			, m_Command( 0xff )
+			, m_Payload( b )
+		{}
+		IEvent( uint8_t i, uint8_t c, uint8_t n )
+			: m_Param( i )
+			, m_Command( c )
+			, m_Payload( n )
+		{}
+	}; // modern computers like sizes to be powers of 2
 
 	enum class SentinelType : uint8_t { NoSentinel, Empty, Loop, Stop, Start, Legato, Gate, Mark, Mark2, Mark3, Mark4 };
 	enum class Semantic : uint8_t { Parameter, Command, Payload };

@@ -9,7 +9,7 @@ namespace Editor
 											  const Editor::DriverState& inDriverState, unsigned short inSourceAddress,
 											  int inBlockSize )
 		: IDataSourceEvents( *inDriverInfo.GetDriverArchitecture()->m_OrderEvents, inCPUMemory, inDriverInfo,
-							 inDriverState, inSourceAddress, MAX_ORDER_EVENTS, inBlockSize )
+							 inDriverState, inSourceAddress, inBlockSize, MAX_ORDER_EVENTS )
 	{}
 
 	bool DataSourceOrderList::CanIncreaseSize() const

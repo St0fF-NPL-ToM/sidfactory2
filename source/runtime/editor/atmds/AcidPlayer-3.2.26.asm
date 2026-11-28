@@ -59,7 +59,7 @@ SF2_driverCalls( pinit, pplay )
 // prepend Driver Information Blocks
 SF2_driver( "AcidPlayer-3.2.26", $ac, "3.2.26", DB, TABS,
     List().add( "ad", "sr", "wp", "pp", "fp", "v1", "v2", "v3", "hr", "hf1", "hf2" ),
-    MusicData( 3, tunedats, tunedats+1, 96, secs_lo, secs_hi, 12 * 256, trk10, 256, sec00 ),
+    MusicData( 3, tunedats, tunedats+1, 96, secs_lo, secs_hi, 256, trk10, 256, sec00 ),
     List(), List(), List(), INSDAT )
 
 /* be finished … */
