@@ -1129,7 +1129,7 @@ pvoiceplay:		lda presvoice,x
 #if HAS_DATA
 	.var addr = data.getStructName() == "ATMDS_mem" ? $403c : code_end
 	.var chunks = ATMDS3_pack( data, addr )
-	.print "Player done, collected data ... start addr = $" + toHexString( addr ) + ", Chunks: " + chunks.size()
+	.printnow "Player done, collected data ... start addr = $" + toHexString( addr ) + ", Chunks: " + chunks.size()
 	// Das Packen liefert die Chunks, die jetzt der Reihe nach ausgegeben werden.
 	.for ( var i=0; i<chunks.size(); i++ ) {
 		.var c = chunks.get( i )
