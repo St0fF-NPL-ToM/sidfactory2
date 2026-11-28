@@ -22,8 +22,8 @@ namespace Emulation
 	{
 		m_Mutex = nullptr;
 
-		delete m_Memory;
-		delete m_MemorySnapshot;
+		delete[] m_Memory;
+		if (m_MemorySnapshot) delete[] m_MemorySnapshot;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
